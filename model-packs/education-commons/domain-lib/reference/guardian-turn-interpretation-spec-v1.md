@@ -1,5 +1,8 @@
 # Guardian Turn Interpretation Spec v1
 
+version: 1.0.0
+status: active
+
 Return JSON only.
 
 Fields:
