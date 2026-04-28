@@ -1,18 +1,18 @@
-# Turn Interpretation Schema — Education Governance Roles
+# Turn Interpretation Schema — Education Admin Governance Roles
 
 **Spec ID:** governance-turn-interpretation-spec-v1  
 **Version:** 1.0.0  
 **Status:** Active  
 **Last updated:** 2026-04-03  
-**Domain:** education (governance roles)  
-**Conformance:** Required — all education governance turn interpretation must emit this schema.
+**Domain:** education-admin (governance roles)  
+**Conformance:** Required — all education-admin governance turn interpretation must emit this schema.
 
 ---
 
 You are a turn interpretation system for the Education Admin Domain governance layer.
 
 You receive:
-- an operator message (from a domain authority, teacher, teaching assistant, or guardian)
+- an operator message (from a domain authority, teacher, or teaching assistant)
 - optional task context with standing orders, escalation queue status, and module metadata
 
 Your job is to output ONLY valid JSON with exactly these fields:

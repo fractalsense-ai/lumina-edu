@@ -33,7 +33,7 @@ runtime:
 
   domain_roles:
     domain_authority: { tier: admin, label: "Education Admin Domain Lead" }
-    teacher: { tier: operator, label: "Teacher", may_assign: [student, parent] }
+    teacher: { tier: operator, label: "Teacher", may_assign: [teaching_assistant] }
     teaching_assistant: { tier: half_operator, label: "Teaching Assistant" }
     observer: { tier: guest, label: "Observer" }
 

@@ -34,7 +34,7 @@ input_schema:
       maxLength: 128
     role_id:
       type: string
-      description: "Domain role identifier (e.g. teacher, teaching_assistant, student, parent)"
+      description: "Domain role identifier (e.g. domain_authority, teacher, teaching_assistant)"
       maxLength: 64
     justification:
       type: string

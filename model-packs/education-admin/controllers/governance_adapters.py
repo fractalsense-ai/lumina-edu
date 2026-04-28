@@ -1,6 +1,6 @@
 """Education governance adapters — state builder and domain step for non-learning roles.
 
-Governance roles (domain_authority, teacher, teaching_assistant, guardian) use
+Governance roles (domain_authority, teacher, teaching_assistant) use
 these adapters instead of the learning-specific ZPD/fluency monitors.  The
 pattern mirrors the system domain's ``build_system_state`` /
 ``system_domain_step`` in model-packs/system/controllers/runtime_adapters.py.
@@ -46,7 +46,7 @@ _INVITE_VERBS = frozenset({"invite", "create", "add", "onboard"})
 _MODIFY_VERBS = frozenset({"modify", "update", "change", "edit"})
 _DEACTIVATE_VERBS = frozenset({"deactivate", "disable", "suspend"})
 _USER_NOUNS = frozenset({"user", "users", "student", "students", "teacher", "teachers",
-                         "ta", "assistant", "parent", "guardian"})
+                         "ta", "assistant"})
 _DOMAIN_MENTION = re.compile(
     r"\b(?:in|to|for|from|of)\s+(?:the\s+)?(\w+)\s+domain\b", re.IGNORECASE,
 )

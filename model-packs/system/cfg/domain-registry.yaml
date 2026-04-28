@@ -73,6 +73,21 @@ domains:
       - analogous problem
       - tutoring
 
+  education-admin:
+    runtime_config_path: model-packs/education-admin/cfg/runtime-config.yaml
+    label: Education Admin
+    description: School administration, classroom governance, teacher and teaching-assistant workflows, roster coordination, escalation review, and cross-pack module assignment.
+    module_prefix: eduadm
+    keywords:
+      - education admin
+      - domain authority
+      - teacher
+      - teaching assistant
+      - classroom
+      - roster
+      - escalation
+      - module assignment
+
   system:
     runtime_config_path: model-packs/system/cfg/runtime-config.yaml
     label: System — Lumina Infrastructure

@@ -1,19 +1,19 @@
-# Governance Turn Interpretation Specification — Education Domain
+# Governance Turn Interpretation Specification — Education Admin Domain
 
 **Spec ID:** governance-turn-interpretation-spec-v1  
 **Version:** 1.0.0  
 **Status:** Active  
 **Last updated:** 2026-04-05  
-**Domain:** education (governance roles)  
-**Conformance:** Required — all education governance turn interpretation must emit this schema.
+**Domain:** education-admin (governance roles)  
+**Conformance:** Required — all education-admin governance turn interpretation must emit this schema.
 
 ---
 
 ## Purpose
 
 This Technical Manual specifies the turn interpretation schema for
-**education governance roles**: Domain Authority, Teacher, Teaching
-Assistant, and Guardian. These roles do NOT produce learning evidence
+**education-admin governance roles**: Domain Authority, Teacher, and Teaching
+Assistant. These roles do NOT produce learning evidence
 (ZPD, correctness, step_count, fluency) — they produce governance
 evidence (query_type, command_dispatch, urgency, target_component).
 
@@ -108,14 +108,9 @@ Use: `"physics"`, `"roles"`, `"escalations"`, `"modules"`, `"progress"`,
 - Primary operations: list_users, module_status, explain_reasoning
 - Cannot resolve escalations or modify roles
 
-### Guardian
-- Read-only access to student progress
-- Primary operations: module_status (for their student), explain_reasoning
-- Cannot modify any governance state
-
 ## Related Files
 
 - `model-packs/education-admin/controllers/governance_adapters.py` — interpreter implementation
 - `model-packs/education-admin/prompts/governance-turn-interpretation-spec-v1.md` — SLM prompt text
-- `model-packs/education/cfg/admin-operations.yaml` — operation definitions
+- `model-packs/system/cfg/admin-operations.yaml` — operation definitions
 - `model-packs/education-admin/cfg/runtime-config.yaml` — module routing and local_only flags
