@@ -1,0 +1,76 @@
+# ─── Education Domain Pack Manifest ───────────────────────────────────
+# HMVC identity card — declares what this pack is, what it owns,
+# and how its components map to the Model / Controller / View layers.
+# See docs/7-concepts/hmvc-heritage.md for the architectural rationale.
+# ──────────────────────────────────────────────────────────────────────
+
+# version: 1.0.0
+# last_updated: 2026-04-04
+pack_id: education
+version: "0.1.0"
+description: "Adaptive maths tutoring domain — algebra sequence from pre-algebra through algebra-1, with ZPD tracking, fluency monitoring, and optional world-sim persona theming."
+
+# ── HMVC Layer Map ────────────────────────────────────────────────────
+layers:
+  model:
+    - modules/*/domain-physics.json
+    - schemas/
+    - domain-lib/
+  controller:
+    - controllers/runtime_adapters.py
+    - controllers/nlp_pre_interpreter.py
+    - controllers/tool_adapters.py
+    - controllers/problem_generator.py      # shim → domain-lib/problem_generator.py
+    - controllers/fluency_monitor.py        # shim → domain-lib/fluency_monitor.py
+    - controllers/zpd_monitor_v0_2.py       # shim → domain-lib/zpd_monitor_v0_2.py
+    - controllers/education_operations.py   # domain admin operation handlers
+    - modules/*/tool-adapters/*.yaml
+  domain_lib:
+    - domain-lib/zpd_monitor_v0_2.py
+    - domain-lib/fluency_monitor.py
+    - domain-lib/problem_generator.py
+    - domain-lib/reference/turn-interpretation-spec-v1.md
+    - domain-lib/reference/compressed-state-estimators.md
+    - domain-lib/reference/zpd-monitor-spec-v1.md
+    - domain-lib/reference/fatigue-estimation-spec-v1.md
+  view:
+    - prompts/domain-persona-v1.md
+    - world-sim/
+  docs:
+    - docs/
+
+# ── Modules ───────────────────────────────────────────────────────────
+modules:
+  - general-education
+  - pre-algebra
+  - algebra-intro
+  - algebra-level-1
+  - algebra-1
+  - domain-authority
+  - teacher
+  - teaching-assistant
+  - guardian
+
+# ── Default Module ────────────────────────────────────────────────────
+# Users invited without a specific module assignment land here.
+default_module: general-education
+
+# ── Entry Points ──────────────────────────────────────────────────────
+entry_points:
+  runtime_config: cfg/runtime-config.yaml
+  ui_config: cfg/ui-config.yaml
+  runtime_adapter: controllers/runtime_adapters.py
+  nlp_pre_interpreter: controllers/nlp_pre_interpreter.py
+
+# ── System-role → Domain-role Mapping ─────────────────────────────────
+# Overrides the generic framework defaults with education-specific roles.
+# When a JWT has no explicit domain_roles claim for this domain, the
+# system role is mapped through this table to determine the effective
+# domain role (e.g. "user" → "student", "super_admin" → "teacher").
+system_role_to_domain_role:
+  root: domain_authority
+  admin: domain_authority
+  super_admin: teacher
+  operator: student
+  half_operator: student
+  user: student

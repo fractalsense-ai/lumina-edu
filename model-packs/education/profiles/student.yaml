@@ -1,0 +1,67 @@
+# Student Role Profile Extension — Education Domain
+# ============================================================
+# Layer 3 of the hierarchical profile system (Base → Domain → Role).
+# Learning state, mastery tracking, challenge bands, and fluency
+# tiers specific to the student role.
+# ============================================================
+
+# version: 1.1.0
+# last_updated: 2026-04-05
+preferences:
+  interests: []
+  dislikes: []
+  preferred_explanation_style: step_by_step
+  simulator_preference: rpg
+
+# ── Assigned staff ──────────────────────────────────────────
+assigned_ta_ids: []
+assigned_guardian_ids: []
+
+# ── Safe Person (journaling wellness) ───────────────────────
+# A Safe Person is a trusted adult (different from the guardianship
+# model) the student designates for Tier 3 wellness escalations.
+# Both fields must be set AND handshake accepted before any alert fires.
+assigned_safe_person_id: null
+safe_person_handshake_accepted: false
+
+# ── Domain-wide learning posture ────────────────────────────
+# Module-specific state (mastery, challenge_band, recent_window, fluency)
+# is initialized per-module from runtime-config initial_module_state and
+# persisted to the actor_module_states table — NOT on the profile.
+learning_state:
+  # ── SVA Affect Baseline (floating, evolves across modules) ──
+  # Exponential moving average of per-turn affect readings.  Tells
+  # teachers whether the learner CAN learn right now.
+  affect_baseline:
+    salience: 0.5
+    valence: 0.0
+    arousal: 0.5
+    sample_count: 0
+    per_module: {}                     # Latest affect snapshot per module with delta_from_baseline
+
+  # Domain-wide posture defaults (seeds for first module entry)
+  challenge: 0.3
+  uncertainty: 0.8
+
+  # ── Relational SVA Baseline ────────────────────────────────
+  # Per-entity EWMA affect baselines.  Keys are opaque entity hashes
+  # (e.g. "Entity_A4F9"); entity names are never stored server-side.
+  # Populated by education_profile_serializer when entity_mentions are
+  # present in the orchestrator state.
+  relational_baseline: {}
+
+  # ── Vocabulary Growth Tracking ────────────────────────────
+  # Passive vocabulary complexity monitoring. Only structured metrics
+  # are stored — no chat content is persisted server-side.
+  vocabulary_tracking:
+    baseline_complexity: null          # Set from first N sessions (float, 0..1)
+    current_complexity: null           # Latest session measurement
+    growth_delta: 0.0                  # Cumulative growth from baseline
+    domain_vocabulary: {}              # Per-module vocab expansion, e.g. {"algebra-level-1": {"terms_acquired": 0, "complexity_delta": 0.0}}
+    measurement_window_turns: 20       # Client-side analysis window
+    baseline_sessions_remaining: 3     # Sessions until baseline locks
+    baseline_samples: []               # Complexity scores from initial sessions
+    last_measured_utc: null
+    session_history: []                # Rolling list of {complexity, delta, measured_utc}
+
+  updated_utc: null

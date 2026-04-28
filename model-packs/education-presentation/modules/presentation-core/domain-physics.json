@@ -1,0 +1,62 @@
+{
+  "id": "domain/edupres/presentation-core/v1",
+  "version": "0.1.0",
+  "admin": {
+    "name": "Education Presentation Authority",
+    "role": "Domain Authority",
+    "pseudonymous_id": "da_edupres_001"
+  },
+  "meta_authority_id": "domain/sys/system-core/v1",
+  "description": "Shared education presentation layer for narrative framing and world-sim templates. This pack is cosmetic only and does not own learning, wellness, or governance physics.",
+  "department": "Education Presentation",
+  "lumina_core_version": "1.0.0",
+  "invariants": [
+    {
+      "id": "presentation_cosmetic_only",
+      "description": "Presentation assets must not change domain physics, standing-order selection, escalation thresholds, or learner state transitions.",
+      "severity": "critical",
+      "check": "logic_override_attempted == false",
+      "standing_order_on_violation": "halt_presentation_override"
+    },
+    {
+      "id": "consent_boundary_preserved",
+      "description": "Narrative framing must preserve magic-circle consent and must not obscure the real educational task or responsible authority.",
+      "severity": "critical",
+      "check": "consent_boundary_obscured == false",
+      "standing_order_on_violation": "request_consent_boundary_review"
+    }
+  ],
+  "standing_orders": [
+    {
+      "id": "halt_presentation_override",
+      "action": "escalate",
+      "trigger_condition": "presentation_cosmetic_only",
+      "max_attempts": 1,
+      "escalation_on_exhaust": true,
+      "description": "Stop any presentation-layer attempt to alter department physics and route to the owning department authority."
+    },
+    {
+      "id": "request_consent_boundary_review",
+      "action": "request_more_detail",
+      "trigger_condition": "consent_boundary_preserved",
+      "max_attempts": 2,
+      "escalation_on_exhaust": false,
+      "description": "Ask the author to restate how the presentation keeps consent and real-world task boundaries clear."
+    }
+  ],
+  "escalation_triggers": [
+    {
+      "id": "presentation_logic_boundary_violation",
+      "condition": "A world-sim or presentation artifact attempts to override department logic or consent boundaries.",
+      "target_role": "presentation_authority",
+      "sla_minutes": 60
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "education-world-sim-specs-v1",
+      "type": "presentation_spec_set",
+      "path": "model-packs/education-presentation/world-sim"
+    }
+  ]
+}

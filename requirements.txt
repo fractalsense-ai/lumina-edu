@@ -1,0 +1,47 @@
+# Core runtime dependencies for Project Lumina API host
+fastapi>=0.111.0
+uvicorn>=0.30.0
+httpx>=0.27.0
+python-multipart>=0.0.18
+
+# Deterministic algebra/symbolic math engine (zero-trust tool adapters)
+sympy>=1.12
+
+# NLP sentence splitting (requires spaCy model: python -m spacy download en_core_web_md)
+# en_core_web_md provides richer word vectors for better sentence segmentation
+# and semantic similarity than en_core_web_sm.
+spacy>=3.7.0
+
+# Optional providers for live LLM calls (install as needed)
+# openai>=1.0.0
+# anthropic>=0.34.0
+
+# Optional SQLite persistence backend (install when using LUMINA_PERSISTENCE_BACKEND=sqlite)
+# sqlalchemy[asyncio]>=2.0.0
+# aiosqlite>=0.20.0
+
+# SLM (Small Language Model) compute distribution layer
+# The local provider (default) uses httpx — already listed above — to call a local
+# Ollama/llama.cpp-compatible endpoint.  No extra Python package is needed.
+#   1. Install Ollama:  https://ollama.com/download  (or: winget install Ollama.Ollama)
+#   2. Pull the model:  ollama pull gemma3:4b
+#   3. Start Ollama:    ollama serve          (listens on http://localhost:11434)
+# Cloud SLM providers reuse the openai / anthropic packages already listed above.
+# Key env vars:
+#   LUMINA_SLM_PROVIDER   local | openai | anthropic   (default: local)
+#   LUMINA_SLM_MODEL      model name to pass the provider  (default: gemma3:4b)
+
+# Semantic embeddings for domain-pack doc retrieval (MiniLM housekeeper)
+# all-MiniLM-L6-v2: 384-dim, ~80MB, CPU-friendly
+sentence-transformers>=3.0.0
+numpy>=1.26.0
+
+# CalDAV client (calendar tool — Google, iCloud, Nextcloud compatible)
+caldav>=1.3.0
+
+#   LUMINA_SLM_ENDPOINT   Ollama base URL  (default: http://localhost:11434)
+
+# Optional password hashing backends (install for production-grade hashing)
+# Default is Argon2id; falls back to bcrypt then SHA-256 when libs are absent.
+# argon2-cffi>=23.1.0    (Argon2id — recommended default)
+# bcrypt>=4.0.0          (bcrypt — battle-tested alternative)

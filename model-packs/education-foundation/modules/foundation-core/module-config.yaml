@@ -1,0 +1,28 @@
+domain_physics_path: model-packs/education-foundation/modules/foundation-core/domain-physics.json
+
+initial_module_state:
+  score: 0.0
+  uncertainty: 0.1
+  turn_count: 0
+  direct_state_change_attempted: false
+  department_policy_embedded: false
+
+default_task_spec:
+  task_id: education-foundation-reference-001
+  nominal_difficulty: 0.0
+  skills_required:
+    - inspect_reference
+    - preserve_boundaries
+
+domain_step_params:
+  reference_only: true
+
+turn_input_defaults:
+  on_track: true
+  response_latency_sec: 5.0
+  off_task_ratio: 0.0
+  direct_state_change_attempted: false
+  department_policy_embedded: false
+
+ui_overrides:
+  subtitle: "Education Foundation"

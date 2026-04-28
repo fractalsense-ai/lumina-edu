@@ -1,0 +1,35 @@
+# Education Foundation Model-Pack Manifest
+
+pack_id: education-foundation
+version: "0.1.0"
+description: >-
+  Shared education foundation pack for reusable learning-state schemas,
+  monitoring utilities, and reference specifications used by department
+  education model-packs.
+
+layers:
+  model:
+    - modules/*/domain-physics.json
+    - schemas/
+    - domain-lib/
+  controller:
+    - controllers/runtime_adapters.py
+    - controllers/nlp_pre_interpreter.py
+  domain_lib:
+    - domain-lib/monitoring/
+    - domain-lib/reference/
+  view:
+    - prompts/domain-persona-v1.md
+  docs:
+    - docs/
+
+modules:
+  - foundation-core
+
+default_module: foundation-core
+
+entry_points:
+  runtime_config: cfg/runtime-config.yaml
+  ui_config: cfg/ui-config.yaml
+  runtime_adapter: controllers/runtime_adapters.py
+  nlp_pre_interpreter: controllers/nlp_pre_interpreter.py

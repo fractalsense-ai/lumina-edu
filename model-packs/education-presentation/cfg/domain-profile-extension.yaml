@@ -1,0 +1,17 @@
+consent:
+  accepted: false
+  consent_timestamp_utc: null
+  consent_version: education-presentation-v0.1.0
+
+session_history:
+  total_sessions: 0
+  last_session_utc: null
+  total_turns: 0
+
+presentation_scope:
+  cosmetic_only: true
+  world_sim_specs:
+    - magic-circle-consent-v1.md
+    - world-sim-spec-v1.md
+    - artifact-and-mastery-spec-v1.md
+    - mud-world-builder-spec-v1.md

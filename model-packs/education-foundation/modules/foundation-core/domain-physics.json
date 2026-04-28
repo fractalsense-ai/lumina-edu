@@ -1,0 +1,67 @@
+{
+  "id": "domain/eduf/foundation-core/v1",
+  "version": "0.1.0",
+  "admin": {
+    "name": "Education Foundation Authority",
+    "role": "Domain Authority",
+    "pseudonymous_id": "da_eduf_001"
+  },
+  "meta_authority_id": "domain/sys/system-core/v1",
+  "description": "Shared education foundation for reusable state schemas, monitoring utilities, and reference specifications. This pack is a dependency surface for department education packs, not a learner-facing domain.",
+  "department": "Education Foundation",
+  "lumina_core_version": "1.0.0",
+  "invariants": [
+    {
+      "id": "foundation_reference_only",
+      "description": "Foundation sessions must not directly mutate learner state or issue instructional decisions.",
+      "severity": "critical",
+      "check": "direct_state_change_attempted == false",
+      "standing_order_on_violation": "halt_and_route_to_department_pack"
+    },
+    {
+      "id": "shared_artifact_scope_preserved",
+      "description": "Foundation artifacts must remain shared primitives and must not embed department-specific policy thresholds without explicit department ownership.",
+      "severity": "warning",
+      "check": "department_policy_embedded == false",
+      "standing_order_on_violation": "request_scope_review"
+    }
+  ],
+  "standing_orders": [
+    {
+      "id": "halt_and_route_to_department_pack",
+      "action": "escalate",
+      "trigger_condition": "foundation_reference_only",
+      "max_attempts": 1,
+      "escalation_on_exhaust": true,
+      "description": "Stop any attempted state mutation and route the work to the owning department model-pack."
+    },
+    {
+      "id": "request_scope_review",
+      "action": "request_more_detail",
+      "trigger_condition": "shared_artifact_scope_preserved",
+      "max_attempts": 2,
+      "escalation_on_exhaust": false,
+      "description": "Ask the author to identify whether the artifact belongs in foundation or a department pack."
+    }
+  ],
+  "escalation_triggers": [
+    {
+      "id": "foundation_boundary_violation",
+      "condition": "A shared foundation artifact attempts to own learner-facing policy, curriculum thresholds, or direct state mutation.",
+      "target_role": "foundation_authority",
+      "sla_minutes": 60
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "education-shared-state-schemas-v1",
+      "type": "schema_set",
+      "path": "model-packs/education-foundation/schemas"
+    },
+    {
+      "id": "education-monitoring-library-v1",
+      "type": "domain_library",
+      "path": "model-packs/education-foundation/domain-lib/monitoring"
+    }
+  ]
+}

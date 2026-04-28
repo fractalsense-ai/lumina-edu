@@ -1,0 +1,76 @@
+runtime:
+  global_system_prompt_path: docs/5-standards/global-system-prompt.md
+  domain_system_prompt_path: model-packs/education-foundation/prompts/domain-persona-v1.md
+  turn_interpretation_prompt_path: model-packs/education-foundation/domain-lib/reference/turn-interpretation-spec-v1.md
+
+  domain_physics_path: model-packs/education-foundation/modules/foundation-core/domain-physics.json
+  subject_profile_path: model-packs/education-foundation/profiles/entity.yaml
+
+  base_profile_path: model-packs/system/cfg/base-entity-profile.yaml
+  domain_profile_extension_path: model-packs/education-foundation/cfg/domain-profile-extension.yaml
+  profile_templates:
+    default: model-packs/education-foundation/profiles/entity.yaml
+    foundation_authority: model-packs/education-foundation/profiles/entity.yaml
+
+  slm_weight_overrides:
+    turn_interpretation: low
+
+  module_map:
+    domain/eduf/foundation-core/v1:
+      module_path: model-packs/education-foundation/modules/foundation-core
+
+  role_to_default_module:
+    foundation_authority: domain/eduf/foundation-core/v1
+    observer: domain/eduf/foundation-core/v1
+
+  domain_roles:
+    foundation_authority: { tier: admin, label: "Education Foundation Authority" }
+    observer: { tier: guest, label: "Foundation Observer" }
+
+  access_control:
+    required_role: admin
+    min_tier: admin
+
+  local_only: true
+
+  default_task_spec:
+    task_id: education-foundation-reference-001
+    nominal_difficulty: 0.0
+
+  turn_input_defaults:
+    on_track: true
+    response_latency_sec: 5.0
+    off_task_ratio: 0.0
+
+  turn_input_schema:
+    on_track:
+      type: bool
+      default: true
+      description: "Whether the foundation reference request is in scope."
+    response_latency_sec:
+      type: float
+      minimum: 0.0
+      default: 5.0
+    off_task_ratio:
+      type: float
+      minimum: 0.0
+      maximum: 1.0
+      default: 0.0
+
+  action_prompt_type_map:
+    request_more_detail: more_detail_request
+
+  deterministic_templates:
+    more_detail_request: "Please clarify which education foundation artifact you want to inspect."
+    default: "Education foundation reference request acknowledged."
+
+adapters:
+  state_builder:
+    module_path: model-packs/education-foundation/controllers/runtime_adapters.py
+    callable: build_initial_state
+  domain_step:
+    module_path: model-packs/education-foundation/controllers/runtime_adapters.py
+    callable: domain_step
+  turn_interpreter:
+    module_path: model-packs/education-foundation/controllers/runtime_adapters.py
+    callable: interpret_turn_input

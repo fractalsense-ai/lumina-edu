@@ -1,0 +1,19 @@
+consent:
+  accepted: false
+  consent_timestamp_utc: null
+  consent_version: education-foundation-v0.1.0
+
+session_history:
+  total_sessions: 0
+  last_session_utc: null
+  total_turns: 0
+
+foundation_scope:
+  shared_schemas:
+    - compressed-state-schema-v1.json
+    - student-profile-schema-v1.json
+    - mud-world-state-schema.json
+  shared_monitors:
+    - zpd_monitor_v0_2
+    - fluency_monitor
+    - vocabulary_growth_monitor_v0_1

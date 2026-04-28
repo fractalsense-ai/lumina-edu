@@ -1,0 +1,532 @@
+{
+  "id": "domain/edu/algebra-level-1/v1",
+  "version": "0.4.0",
+  "domain_authority": {
+    "name": "Lead Algebra Teacher",
+    "role": "Teacher",
+    "pseudonymous_id": "da_algebra_lead_001"
+  },
+  "meta_authority_id": "domain/edu/curriculum/v1",
+  "description": "Algebra Level 1 — legacy deployed module covering single-variable linear equations (Artifacts 3–4 of the Pre-Algebra curriculum: single_step_equations and multi_step_linear_equations), equivalence preservation, and solution verification. Active for current users. The new pre-algebra module (domain/edu/pre-algebra/v1) extends this with variables/expressions, order of operations, and linear inequalities.\n",
+  "department": "Mathematics",
+  "lumina_core_version": "1.0.0",
+  "invariants": [
+    {
+      "id": "equivalence_preserved",
+      "description": "Both sides of an equation must remain algebraically equal after every transformation step. A step that breaks equivalence is invalid.\n",
+      "severity": "critical",
+      "check": "equivalence_preserved",
+      "standing_order_on_violation": "request_more_steps"
+    },
+    {
+      "id": "no_illegal_operations",
+      "description": "The student may not divide by zero, take a square root of a negative (in real-number context), or apply undefined operations.\n",
+      "severity": "critical",
+      "check": "illegal_operations == []",
+      "standing_order_on_violation": "request_more_steps"
+    },
+    {
+      "id": "solution_verifies",
+      "description": "The proposed solution value must satisfy the original equation when substituted back in.\n",
+      "severity": "critical",
+      "check": "substitution_check",
+      "standing_order_on_violation": "request_verification_retry"
+    },
+    {
+      "id": "standard_method_preferred",
+      "description": "Non-standard solution methods are acceptable but should be flagged for Domain Authority review. The student should be aware that standard methods are preferred for this course.\n",
+      "severity": "warning",
+      "check": "method_recognized",
+      "standing_order_on_violation": "request_method_justification",
+      "signal_type": "NOVEL_PATTERN"
+    },
+    {
+      "id": "show_work_minimum",
+      "description": "Solutions must show at least the number of distinct transformation steps required by the problem type (set by the problem generator as min_steps). A bare answer with no work shown is not acceptable.\n",
+      "severity": "warning",
+      "check": "step_count >= min_steps",
+      "standing_order_on_violation": "request_more_steps"
+    },
+    {
+      "id": "zpd_drift_minor",
+      "description": "The student's challenge level has drifted outside the ZPD band in >= 30% of the recent window turns.\n",
+      "severity": "warning",
+      "check": "outside_pct >= 0.3",
+      "handled_by": "zpd_monitor",
+      "standing_order_on_violation": "zpd_scaffold"
+    },
+    {
+      "id": "zpd_drift_major",
+      "description": "The student's challenge level has drifted outside the ZPD band in >= 50% of the recent window turns, or for 3+ consecutive turns. Both conditions are evaluated internally by the ZPD monitor; the check field here is informational.\n",
+      "severity": "warning",
+      "check": "outside_pct >= 0.5",
+      "handled_by": "zpd_monitor",
+      "standing_order_on_violation": "zpd_intervene_or_escalate"
+    },
+    {
+      "id": "fluency_bottleneck",
+      "description": "The student has solved equations correctly but failed to meet the time threshold across consecutive attempts, indicating procedural fluency has not been achieved at the current tier.\n",
+      "severity": "warning",
+      "check": "average_completion_time > fluency_monitor.time_threshold_seconds",
+      "handled_by": "fluency_monitor",
+      "standing_order_on_violation": "trigger_targeted_hint"
+    }
+  ],
+  "standing_orders": [
+    {
+      "id": "request_more_steps",
+      "action": "request_more_steps",
+      "trigger_condition": "equivalence_preserved or no_illegal_operations or show_work_minimum",
+      "max_attempts": 3,
+      "escalation_on_exhaust": true,
+      "description": "Ask the student to show their work step by step, identifying each transformation they applied.\n"
+    },
+    {
+      "id": "request_verification_retry",
+      "action": "request_verification_retry",
+      "trigger_condition": "solution_verifies",
+      "max_attempts": 2,
+      "escalation_on_exhaust": true,
+      "description": "Ask the student to substitute their answer back into the original equation and check that both sides are equal.\n"
+    },
+    {
+      "id": "request_method_justification",
+      "action": "request_method_justification",
+      "trigger_condition": "standard_method_preferred",
+      "max_attempts": 1,
+      "escalation_on_exhaust": false,
+      "description": "Acknowledge the non-standard approach and ask the student to explain their reasoning. Flag for Domain Authority review.\n"
+    },
+    {
+      "id": "zpd_scaffold",
+      "action": "zpd_scaffold",
+      "trigger_condition": "zpd_drift_minor",
+      "max_attempts": 3,
+      "escalation_on_exhaust": false,
+      "description": "Reduce challenge level on the next task. Offer an optional hint. Provide additional scaffolding in the explanation.\n"
+    },
+    {
+      "id": "zpd_intervene_or_escalate",
+      "action": "zpd_intervene_or_escalate",
+      "trigger_condition": "zpd_drift_major or frustration_flag",
+      "max_attempts": 1,
+      "escalation_on_exhaust": true,
+      "description": "Pause the current task. Issue one probe to check understanding. If the probe response does not improve state, escalate to teacher.\n"
+    },
+    {
+      "id": "trigger_targeted_hint",
+      "action": "trigger_targeted_hint",
+      "trigger_condition": "fluency_bottleneck",
+      "max_attempts": 3,
+      "escalation_on_exhaust": false,
+      "description": "Provide a targeted procedural hint addressing the specific operation the student is struggling with (e.g. inverse operations, combining like terms). Do not solve the problem.\n"
+    },
+    {
+      "id": "hint_inverse_operations",
+      "action": "inject_domain_rule",
+      "trigger_condition": "evidence contains inverse_error",
+      "max_attempts": 2,
+      "escalation_on_exhaust": true,
+      "description": "Provide the strict domain rule for moving constants across the equals sign using inverse operations. Do not solve the problem; only state the structural algebraic rule.\n"
+    }
+  ],
+  "escalation_triggers": [
+    {
+      "id": "critical_invariant_unresolvable",
+      "condition": "A critical invariant (equivalence_preserved, no_illegal_operations, or solution_verifies) was violated and the standing order has been exhausted (3 attempts).\n",
+      "target_role": "teacher",
+      "sla_minutes": 30
+    },
+    {
+      "id": "major_zpd_drift_unresolved",
+      "condition": "zpd_intervene_or_escalate standing order was applied and the probe response did not reduce outside_pct below the minor threshold.\n",
+      "target_role": "teacher",
+      "sla_minutes": 30
+    },
+    {
+      "id": "domain_lib_escalation_event",
+      "condition": "The domain-lib ZPD monitor determined that frustration or major drift warrants teacher intervention.\n",
+      "target_role": "teacher",
+      "sla_minutes": 30
+    },
+    {
+      "id": "novel_pattern_review",
+      "condition": "standard_method_preferred invariant fired and the method is unrecognized after justification request.\n",
+      "target_role": "teacher",
+      "sla_minutes": 120
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "linear_equations_basic",
+      "name": "Linear Equations — Foundations",
+      "description": "Demonstrates ability to solve single-variable linear equations with equivalence preservation, showing all required steps, and verifying the solution.\n",
+      "unlock_condition": "mastery >= 0.8 on all required skills, confirmed by boss challenge",
+      "mastery_threshold": 0.8,
+      "skills_required": [
+        "equivalence_preserved",
+        "no_illegal_operations",
+        "solution_verifies",
+        "show_work_minimum"
+      ]
+    }
+  ],
+  "subsystem_configs": {
+    "zpd_monitor": {
+      "min_challenge": 0.3,
+      "max_challenge": 0.7,
+      "drift_window_turns": 10,
+      "minor_drift_threshold": 0.3,
+      "major_drift_threshold": 0.5,
+      "persistence_required": 3
+    },
+    "fluency_monitor": {
+      "target_consecutive_successes": 3,
+      "time_threshold_seconds": 120,
+      "tier_progression": [
+        "tier_1",
+        "tier_2",
+        "tier_3"
+      ]
+    },
+    "equation_difficulty_tiers": [
+      {
+        "tier_id": "tier_1",
+        "label": "Entry — Single-Step Isolation",
+        "equation_type": "single_step_isolation",
+        "equation_template": "x + a = b",
+        "min_difficulty": 0.0,
+        "max_difficulty": 0.35
+      },
+      {
+        "tier_id": "tier_2",
+        "label": "Intermediate — Variable Consolidation",
+        "equation_type": "variable_consolidation",
+        "equation_template": "ax = b",
+        "min_difficulty": 0.35,
+        "max_difficulty": 0.65
+      },
+      {
+        "tier_id": "tier_3",
+        "label": "Advanced — Multi-Step Linear",
+        "equation_type": "multi_step_linear",
+        "equation_template": "ax + b = c  or  ax - b = c",
+        "min_difficulty": 0.65,
+        "max_difficulty": 1.0
+      }
+    ]
+  },
+  "evidence_schema": {
+    "path": "evidence-schema.json",
+    "version": "1.0"
+  },
+  "glossary": [
+    {
+      "term": "variable",
+      "definition": "A letter (usually x, y, or z) that stands for an unknown number you are trying to find.",
+      "aliases": [
+        "variables",
+        "unknown",
+        "unknowns",
+        "the letter"
+      ],
+      "related_terms": [
+        "constant",
+        "coefficient",
+        "expression"
+      ]
+    },
+    {
+      "term": "coefficient",
+      "definition": "The number multiplied by a variable. When no number is written, the coefficient is 1.",
+      "aliases": [
+        "coefficients",
+        "the number in front of x",
+        "number before the variable"
+      ],
+      "related_terms": [
+        "variable",
+        "constant",
+        "term"
+      ]
+    },
+    {
+      "term": "constant",
+      "definition": "A number on its own that does not change and is not attached to a variable.",
+      "aliases": [
+        "constants",
+        "plain number",
+        "fixed number"
+      ],
+      "related_terms": [
+        "variable",
+        "coefficient",
+        "expression"
+      ]
+    },
+    {
+      "term": "equation",
+      "definition": "A mathematical statement that two expressions are equal, connected by an equals sign (=).",
+      "aliases": [
+        "equations"
+      ],
+      "related_terms": [
+        "expression",
+        "variable",
+        "solution"
+      ]
+    },
+    {
+      "term": "expression",
+      "definition": "A combination of numbers, variables, and operations (like + or -) that represents a value. An expression does NOT have an equals sign.",
+      "aliases": [
+        "expressions",
+        "math expression"
+      ],
+      "related_terms": [
+        "equation",
+        "variable",
+        "term"
+      ]
+    },
+    {
+      "term": "isolate",
+      "definition": "To get the variable by itself on one side of the equation by performing operations on both sides.",
+      "aliases": [
+        "isolating",
+        "get x by itself",
+        "get the variable alone"
+      ],
+      "related_terms": [
+        "inverse operation",
+        "variable",
+        "equation"
+      ]
+    },
+    {
+      "term": "inverse operation",
+      "definition": "The opposite operation that undoes another operation. Addition and subtraction are inverses; multiplication and division are inverses.",
+      "aliases": [
+        "inverse operations",
+        "opposite operation",
+        "undo operation",
+        "reverse operation"
+      ],
+      "related_terms": [
+        "isolate",
+        "equation",
+        "variable"
+      ]
+    },
+    {
+      "term": "substitution",
+      "definition": "Replacing the variable with a number to check whether the equation is true.",
+      "aliases": [
+        "substitute",
+        "substituting",
+        "plug in",
+        "plugging in"
+      ],
+      "related_terms": [
+        "solution",
+        "equation",
+        "variable"
+      ]
+    },
+    {
+      "term": "linear equation",
+      "definition": "An equation where the variable has no exponent (or an exponent of 1). Its graph is a straight line.",
+      "aliases": [
+        "linear equations",
+        "linear",
+        "first-degree equation"
+      ],
+      "related_terms": [
+        "equation",
+        "variable",
+        "coefficient"
+      ]
+    },
+    {
+      "term": "solution",
+      "definition": "The value of the variable that makes the equation true.",
+      "aliases": [
+        "solutions",
+        "answer",
+        "root"
+      ],
+      "related_terms": [
+        "equation",
+        "variable",
+        "substitution"
+      ]
+    },
+    {
+      "term": "term",
+      "definition": "A single number, a single variable, or a number multiplied by a variable. Terms are separated by + or - signs.",
+      "aliases": [
+        "terms"
+      ],
+      "related_terms": [
+        "coefficient",
+        "variable",
+        "constant",
+        "expression"
+      ]
+    },
+    {
+      "term": "like terms",
+      "definition": "Terms that have the same variable raised to the same power. Like terms can be combined by adding or subtracting their coefficients.",
+      "aliases": [
+        "combining like terms",
+        "combine like terms",
+        "similar terms"
+      ],
+      "related_terms": [
+        "term",
+        "coefficient",
+        "variable",
+        "expression"
+      ]
+    }
+  ],
+  "tool_adapters": [
+    "adapter/edu/algebra-parser/v1",
+    "adapter/edu/calculator/v1",
+    "adapter/edu/substitution-checker/v1"
+  ],
+  "world_sim_override": {
+    "available_themes": [
+      "space_exploration",
+      "nature_and_outdoors",
+      "sports_and_games",
+      "general_math"
+    ]
+  },
+  "permissions": {
+    "mode": "750",
+    "owner": "da_algebra_lead_001",
+    "group": "educators",
+    "acl": [
+      {
+        "role": "operator",
+        "access": "rx",
+        "scope": "evaluation_only"
+      },
+      {
+        "role": "half_operator",
+        "access": "rx",
+        "scope": "log_records_only"
+      },
+      {
+        "domain_role": "student",
+        "access": "x"
+      }
+    ]
+  },
+  "execution_policy": {
+    "deterministic_tools": [
+      "adapter/edu/algebra-parser/v1",
+      "adapter/edu/substitution-checker/v1"
+    ],
+    "precompiled_routes": {
+      "invariant_handlers": {
+        "equivalence_preserved": {
+          "standing_order_id": "request_more_steps",
+          "tool_adapter_id": "adapter/edu/algebra-parser/v1",
+          "library_deps": [
+            "education/turn_interpretation"
+          ]
+        },
+        "solution_verifies": {
+          "standing_order_id": "request_verification_retry",
+          "tool_adapter_id": "adapter/edu/substitution-checker/v1",
+          "library_deps": [
+            "education/turn_interpretation"
+          ]
+        },
+        "no_illegal_operations": {
+          "standing_order_id": "request_more_steps",
+          "tool_adapter_id": "adapter/edu/algebra-parser/v1",
+          "library_deps": [
+            "education/turn_interpretation"
+          ]
+        },
+        "show_work_minimum": {
+          "standing_order_id": "request_more_steps",
+          "tool_adapter_id": "adapter/edu/algebra-parser/v1",
+          "library_deps": [
+            "education/turn_interpretation"
+          ]
+        }
+      },
+      "standing_order_tools": {
+        "request_more_steps": {
+          "tool_chain": [
+            "adapter/edu/algebra-parser/v1"
+          ],
+          "library_deps": [
+            "education/turn_interpretation"
+          ]
+        },
+        "request_verification_retry": {
+          "tool_chain": [
+            "adapter/edu/substitution-checker/v1"
+          ],
+          "library_deps": [
+            "education/turn_interpretation"
+          ]
+        }
+      }
+    }
+  },
+  "actor_types": [
+    {
+      "id": "student",
+      "label": "Student",
+      "description": "Learner working through algebra level 1 artifacts, producing evidence via problem-solving steps.",
+      "evidence_sources": [
+        "adapter/edu/substitution-checker/v1"
+      ],
+      "groups": [
+        "learners"
+      ]
+    }
+  ],
+  "actor_groups": {
+    "learners": {
+      "description": "Actors who produce evidence by working through domain artifacts and problem-solving steps.",
+      "members": [
+        "student"
+      ]
+    }
+  },
+  "group_libraries": [
+    {
+      "id": "turn_interpretation",
+      "path": "domain-lib/reference/turn-interpretation-spec-v1.md",
+      "description": "Turn interpretation output schema — defines the JSON structure the SLM must emit when classifying student intent.",
+      "shared_with_modules": [
+        "algebra-level-1"
+      ]
+    }
+  ],
+  "module_state_schema": {
+    "mastery_dimensions": [
+      "equivalence_preserved",
+      "no_illegal_operations",
+      "solution_verifies",
+      "show_work_minimum"
+    ],
+    "tracked_subsystems": [
+      "affect",
+      "mastery",
+      "challenge_band",
+      "recent_window",
+      "fluency",
+      "challenge",
+      "uncertainty"
+    ],
+    "custom_fields": {}
+  }
+}

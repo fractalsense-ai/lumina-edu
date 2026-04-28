@@ -1,0 +1,28 @@
+domain_physics_path: model-packs/education-presentation/modules/presentation-core/domain-physics.json
+
+initial_module_state:
+  score: 0.0
+  uncertainty: 0.1
+  turn_count: 0
+  logic_override_attempted: false
+  consent_boundary_obscured: false
+
+default_task_spec:
+  task_id: education-presentation-reference-001
+  nominal_difficulty: 0.0
+  skills_required:
+    - inspect_presentation_reference
+    - preserve_consent_boundary
+
+domain_step_params:
+  cosmetic_only: true
+
+turn_input_defaults:
+  on_track: true
+  response_latency_sec: 5.0
+  off_task_ratio: 0.0
+  logic_override_attempted: false
+  consent_boundary_obscured: false
+
+ui_overrides:
+  subtitle: "Education Presentation"

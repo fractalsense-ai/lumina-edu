@@ -1,0 +1,186 @@
+# ─────────────────────────────────────────────────────────────
+# Admin Operations Schema — System Domain
+# ─────────────────────────────────────────────────────────────
+#
+# Canonical source for all admin operations available to the SLM
+# command translator.  The engine reads this file at startup and
+# feeds the operation list to slm_parse_admin_command().
+#
+# Each entry defines:
+#   name        — unique operation identifier
+#   description — natural-language purpose (fed to SLM for intent matching)
+#   params      — dict of parameter definitions (name → "type — description")
+#
+# Schema contract: list of objects with keys {name, description, params}.
+# params values are human-readable type strings consumed by the SLM.
+#
+# See: docs/7-concepts/command-execution-pipeline.md
+# See: docs/7-concepts/domain-role-hierarchy.md
+# ─────────────────────────────────────────────────────────────
+
+# version: 1.0.0
+# last_updated: 2026-04-04
+operations:
+  - name: update_domain_physics
+    description: "Update fields in a domain's physics configuration."
+    params:
+      domain_id: "string — target domain identifier"
+      updates: "object — key/value pairs to merge into domain physics"
+
+  - name: commit_domain_physics
+    description: "Commit the current domain physics hash to the System Logs."
+    params:
+      domain_id: "string — target domain identifier"
+
+  - name: update_user_role
+    description: "Change a user's role. When promoting to admin, include governed_modules."
+    params:
+      user_id: "string — target user identifier"
+      new_role: "string — one of: root, admin, super_admin, operator, half_operator, user"
+      governed_modules: "array of strings — domain module IDs required when new_role is admin (e.g. ['domain/edu/algebra-level-1/v1']). Omit for other roles."
+
+  - name: deactivate_user
+    description: "Deactivate a user account (revokes all access)."
+    params:
+      user_id: "string — target user identifier"
+
+  - name: assign_domain_role
+    description: "Grant a user access to a domain module by assigning a domain role."
+    params:
+      user_id: "string — target user identifier"
+      module_id: "string — domain module identifier (e.g. education/algebra-level-1)"
+      domain_role: "string — domain role to assign"
+
+  - name: revoke_domain_role
+    description: "Revoke a user's access to a domain module by removing their domain role."
+    params:
+      user_id: "string — target user identifier"
+      module_id: "string — domain module identifier to revoke access for"
+
+  - name: resolve_escalation
+    description: "Approve, reject, or defer an escalation."
+    params:
+      escalation_id: "string"
+      resolution: "string — one of: approved, rejected, deferred"
+      rationale: "string — reason for resolution"
+
+  - name: ingest_document
+    description: "Upload and ingest a document into a domain module."
+    params:
+      domain_id: "string — target domain identifier"
+      module_id: "string — target module identifier (optional)"
+      filename: "string — name of the file to ingest"
+
+  - name: list_ingestions
+    description: "List pending ingestion drafts for a domain."
+    params:
+      domain_id: "string — target domain identifier (optional)"
+      status: "string — filter by status (optional)"
+
+  - name: review_ingestion
+    description: "Show SLM-generated interpretations for an ingestion."
+    params:
+      ingestion_id: "string — ingestion document ID"
+
+  - name: approve_interpretation
+    description: "Approve a specific interpretation variant for an ingestion."
+    params:
+      ingestion_id: "string — ingestion document ID"
+      interpretation_label: "string — one of: strict, loose, hierarchical, default, or an interpretation ID"
+
+  - name: reject_ingestion
+    description: "Reject an ingestion with a reason."
+    params:
+      ingestion_id: "string — ingestion document ID"
+      reason: "string — reason for rejection"
+
+  - name: list_escalations
+    description: "List open escalation events."
+    params:
+      domain_id: "string — domain identifier (optional)"
+      status: "string — filter by status (optional, default: open)"
+
+  - name: explain_reasoning
+    description: "Explain why the system made a specific decision or escalated an event."
+    params:
+      event_id: "string — System Log record ID or escalation ID to explain"
+
+  - name: module_status
+    description: "Show the current status of a domain module."
+    params:
+      module_id: "string — module identifier"
+      domain_id: "string — domain identifier (optional)"
+
+  - name: trigger_daemon_task
+    description: "Manually trigger a daemon batch-processing task for a domain."
+    params:
+      domain_id: "string — domain identifier (optional, runs all if omitted)"
+      tasks: "array of strings — specific tasks to run (optional, runs all if omitted)"
+
+  - name: daemon_status
+    description: "Check the status of the daemon scheduler."
+    params: {}
+
+  - name: review_proposals
+    description: "Show pending daemon proposals for review."
+    params:
+      domain_id: "string — domain identifier (optional)"
+
+  - name: invite_user
+    description: "Create and invite a NEW user to the platform. Domain authorities may invite users with 'user' or 'guest' role within their governed modules. Use this when someone asks to add, create, or invite a new user."
+    params:
+      username: "string — the new user's display name"
+      role: "string — system role: root, admin, super_admin, operator, half_operator, user, guest"
+      intended_domain_role: "string — domain-specific role name such as student, teacher, field_operator (optional, advisory field preserved for downstream domain-role assignment)"
+      domain_id: "string — target domain identifier (e.g. education, agriculture). Used to auto-resolve governed_modules and pre-assign domain roles. Set when the user mentions a domain."
+      email: "string — email address (optional)"
+      governed_modules: "array of strings — domain module IDs, required when role is admin. Omit for other roles."
+
+  - name: list_commands
+    description: "List available admin commands with descriptions, HITL status, and required roles. Use this when someone asks to see or list commands."
+    params:
+      include_details: "boolean — true (default) for full details, false for names only"
+
+  - name: list_domains
+    description: "List all registered domains and their modules."
+    params: {}
+
+  - name: list_modules
+    description: "List modules within a domain or all domains."
+    params:
+      domain_id: "string — domain identifier (optional, lists all if omitted)"
+
+  - name: list_users
+    description: "List registered users, optionally filtered by role, domain, module, or domain role. Domain authorities see only users within their governed modules. Use this to discover valid user IDs before targeting them in update_user_role, deactivate_user, assign_domain_role, or revoke_domain_role."
+    params:
+      role: "string — filter by system role (optional)"
+      domain_id: "string — filter to users in a specific domain (optional)"
+      module_id: "string — filter to users in a specific module (optional)"
+      domain_role: "string — filter to users with a specific domain role (optional)"
+
+  - name: get_domain_physics
+    description: "Retrieve the current domain physics configuration for a domain and module. Use this to inspect current physics fields before updating them with update_domain_physics."
+    params:
+      domain_id: "string — target domain identifier"
+      module_id: "string — specific module identifier (optional, returns default module if omitted)"
+
+  - name: list_daemon_tasks
+    description: "List available daemon batch-processing tasks with their priority order. Use this to discover valid task names before passing them to trigger_daemon_task."
+    params: {}
+
+  - name: list_domain_rbac_roles
+    description: "List domain-specific roles defined in a domain's physics configuration. Use this to discover valid role names before assigning domain roles."
+    params:
+      domain_id: "string — target domain identifier"
+
+  - name: get_domain_module_manifest
+    description: "Retrieve a domain's full module manifest including module IDs, labels, and versions. Use this to discover valid module IDs before referencing them."
+    params:
+      domain_id: "string — target domain identifier"
+
+  - name: request_module_assignment
+    description: "Request assignment to a specific domain module. Creates a HITL escalation for the module's domain authority or assigned teacher to approve. Used when a user needs access to a module they are not currently assigned to."
+    params:
+      domain_id: "string — target domain identifier"
+      module_id: "string — module to request assignment to"
+      reason: "string — brief reason for the assignment request (optional)"

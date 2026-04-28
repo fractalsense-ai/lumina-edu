@@ -1,0 +1,98 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+*.pyo
+*.pyd
+.env
+.env.*
+!.env.example
+
+# Virtual environment
+.venv/
+venv/
+
+# Build / packaging
+dist/
+*.egg-info/
+.hatch/
+
+# Test artifacts
+/tmp/
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# Editor and OS files
+.DS_Store
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Frontend (src/web/)
+src/web/node_modules/
+src/web/dist/
+src/web/.env
+src/web/.env.*
+src/web/*.tsbuildinfo
+src/web/coverage/
+src/web/test-results/
+src/web/lib/openaikey.md
+
+# Domain-pack frontend builds
+model-packs/*/web/node_modules/
+model-packs/*/web/dist/
+model-packs/*/web/package-lock.json
+
+# Per-domain vector stores (generated at runtime)
+data/retrieval-index/*/vectors.npz
+data/retrieval-index/*/metadata.json
+data/profiles/
+
+# test artifacts
+cfg/profiles/
+test/artifacts/
+regression_result.txt
+test_output.txt
+testout.txt
+testout2.txt
+regression_run.txt
+focused_failures.txt
+test_batch_results.txt
+test_results.txt
+remaining_test1.txt
+remaining_test2.txt
+remaining_test3.txt
+manifest_result.txt
+other_results.txt
+remaining_test4.txt
+test_full_results.txt
+test_final_results.txt
+test_p2_final.txt
+test_phase2_full.txt
+test_phase2_results.txt
+full_suite_results.txt
+full_suite_final.txt
+full_suite_results2.txt
+full_suite_post_fix.txt
+full_suite_post_fix2.txt
+full_suite_march27.txt
+
+# Runtime database
+lumina.db
+*.db-journal
+*.db-wal
+
+# Black box snapshots
+/data/blackbox
+.claude/settings.local.json
+test_profile_regression.txt
+test_results_b5.txt
+tests/artifacts/full_suite_phase5_2026-03-31.txt
+
+tests/artifacts/phase7-full-suite-results.txt
+src/web/package-lock.json
+
+

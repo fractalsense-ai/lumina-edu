@@ -1,0 +1,8 @@
+preferences:
+  explanation_style: operational
+
+entity_state:
+  active_task_id: null
+  total_sessions: 0
+  last_session_utc: null
+  presentation_artifacts_reviewed: []

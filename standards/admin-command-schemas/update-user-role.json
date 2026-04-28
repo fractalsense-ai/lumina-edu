@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lumina://standards/admin-command-schemas/update-user-role.json",
+  "schema_version": "1.0.0",
+  "last_updated": "2026-03-23",
+  "title": "update_user_role",
+  "description": "Change a user's platform role. Only root may perform this operation.",
+  "type": "object",
+  "required": [
+    "operation",
+    "params"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "operation": {
+      "const": "update_user_role"
+    },
+    "target": {
+      "type": "string"
+    },
+    "params": {
+      "type": "object",
+      "required": [
+        "user_id",
+        "new_role"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "user_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "new_role": {
+          "type": "string",
+          "enum": [
+            "root",
+            "admin",
+            "super_admin",
+            "operator",
+            "half_operator",
+            "user",
+            "guest"
+          ]
+        },
+        "governed_modules": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Domain packs the user is authorised to govern (relevant for admin role)."
+        },
+        "intended_domain_role": {
+          "type": "string",
+          "description": "Original domain-specific role from SLM output (e.g. student, teacher) before mapping to system role."
+        }
+      }
+    }
+  }
+}

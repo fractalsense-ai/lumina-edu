@@ -1,0 +1,20 @@
+# Teacher Role Profile Extension — Education Domain
+# ============================================================
+# Layer 3 of the hierarchical profile system (Base → Domain → Role).
+# Educator state, classroom management, and escalation preferences
+# specific to the teacher role.
+# ============================================================
+
+# version: 1.0.0
+# last_updated: 2026-04-04
+preferences:
+  explanation_style: technical
+
+educator_state:
+  assigned_students: []
+  assigned_ta_ids: []
+  assigned_rooms: []
+  escalation_preferences:
+    receive_escalations: true
+    auto_defer_minutes: null
+  active_standing_order_overrides: {}

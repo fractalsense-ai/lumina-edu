@@ -1,0 +1,117 @@
+# meta-authority-policy-template.yaml
+# ============================================================
+# Project Lumina — Meta Authority Policy Template
+# Version: 1.0.0
+#
+# Fill in this template to define the governance policy for
+# a Meta Authority level (e.g., Department Head, School Admin).
+# ============================================================
+
+# version: 1.0.0
+# last_updated: 2026-04-04
+meta_authority:
+  id: "meta/{org}/{scope}/v1"             # Unique ID for this Meta Authority level
+  version: "1.0.0"
+  role_title: "<e.g., Department Head>"   # Human-readable role title
+  scope_description: "<e.g., Mathematics curriculum for grades 6-8>"
+  responsible_person:
+    pseudonymous_id: "<32-char hex token>"
+    role: "<job title>"
+
+# ── Scope of Authority ──────────────────────────────────────
+# List the domain pack IDs that this Meta Authority governs.
+# Domain packs not listed here are outside this authority's scope.
+governed_domain_packs:
+  - id: "domain/org/algebra-level-1/v1"
+    requires_meta_approval_for_major_version: true
+    requires_meta_approval_for_minor_version: false
+
+# ── Override Invariants ─────────────────────────────────────
+# Invariants set here cannot be relaxed by subordinate domain packs.
+# These apply to ALL governed domains.
+override_invariants:
+  - id: "institution_privacy_minimum"
+    description: "No transcript content may be stored in any domain under this authority"
+    severity: critical
+    check: "log_transcript_check()"
+    cannot_be_overridden: true
+
+  - id: "consent_required"
+    description: "Consent boundary must be established before any session (Principle 8)"
+    severity: critical
+    check: "consent_record_present()"
+    cannot_be_overridden: true
+
+# ── Retrieval Scope ─────────────────────────────────────────
+# What content subordinate sessions may retrieve via RAG.
+retrieval_scope:
+  permitted_retrieval_targets:
+    - type: domain_pack
+      from: this_authority_and_above
+    - type: artifacts
+      from: governed_domain_packs
+    - type: trace_events
+      from: governed_sessions
+      fields: [event_type, decision, evidence_summary_hash]
+      not_fields: [raw_content]
+  blocked_retrieval_targets:
+    - type: subject_profile
+      except: own_session
+
+# ── Escalation Receipt Policy ───────────────────────────────
+# How this Meta Authority handles incoming escalations.
+escalation_policy:
+  acknowledgement_sla_minutes: 60
+  after_hours_fallback_role: "administration"
+  on_sla_breach: escalate_to_next_level
+
+# ── Domain Pack Approval Workflow ───────────────────────────
+approval_workflow:
+  major_version:
+    reviewers_required: 2
+    review_sla_days: 5
+    approval_recorded_as: CommitmentRecord
+  minor_version:
+    reviewers_required: 1
+    review_sla_days: 2
+    approval_recorded_as: CommitmentRecord
+
+# ── Audit Policy ────────────────────────────────────────────
+audit_policy:
+  audit_frequency: weekly
+  audit_targets:
+    - escalation_records
+    - commitment_records
+    - domain_pack_health_reports
+  audit_results_retained_days: 365
+
+# ── Rollback Policy ─────────────────────────────────────────
+rollback_policy:
+  model_pack_rollback_requires: meta_authority_commitment
+  subject_profile_rollback_requires: meta_authority_commitment
+  rollback_records_retained: true
+  retroactive_record_modification: never_permitted
+
+# ── Authentication & RBAC Policy ────────────────────────────
+# JWT and role-based access control settings for this authority scope.
+auth_policy:
+  jwt_issuer: "lumina"                   # Token issuer claim (iss)
+  jwt_algorithm: "HS256"                 # Signing algorithm (HS256 or RS256)
+  token_ttl_minutes: 60                  # Access token lifetime
+  refresh_enabled: true                  # Whether refresh tokens are issued
+  bootstrap_allows_first_root: true      # First user auto-gets root role
+
+# Map pseudonymous IDs to operational roles and module scopes.
+role_assignments:
+  - pseudonymous_id: "<32-char hex token>"
+    role: "admin"             # One of: root, admin, super_admin, operator, half_operator, user
+    governed_modules:
+      - "domain/org/algebra-level-1/v1"
+    granted_by: "<root or meta authority pseudonymous_id>"
+    recorded_as: CommitmentRecord
+
+# ── Renewal ─────────────────────────────────────────────────
+# This policy expires and must be re-committed to the System Logs.
+renewal:
+  policy_valid_until: "2027-03-02"
+  renewal_requires: commitment_record_with_major_authority_signature

@@ -1,0 +1,14 @@
+ui_manifest:
+  title: "Project Lumina"
+  subtitle: "Education Presentation"
+  domain_label: "Education Presentation"
+  consent_heading: "Education Presentation"
+  consent_text: "This pack exposes shared education presentation and world-sim references for authorized operators."
+  consent_button_label: "Continue"
+  placeholder_text: "Ask about shared education presentation artifacts..."
+  theme:
+    primary: "oklch(0.40 0.10 260)"
+    accent: "oklch(0.60 0.14 40)"
+    background: "oklch(0.98 0.01 260)"
+  panels: []
+  role_layouts: {}
