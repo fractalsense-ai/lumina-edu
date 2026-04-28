@@ -1,0 +1,7 @@
+ui:
+  label: Education Math
+  default_view: learning
+  features:
+    world_sim: true
+    practice_problem_generation: true
+    deterministic_math_tools: true

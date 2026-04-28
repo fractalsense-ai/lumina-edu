@@ -133,6 +133,8 @@ def freeform_domain_step(
     intent = evidence.get("intent_type")
     if intent == "command":
         action = "user_command"
+    elif intent == "math_practice_request":
+        action = "math_practice_request"
     elif intent == "tool_request":
         action = "tool_request"
     else:
@@ -196,6 +198,12 @@ _USER_COMMAND_PATTERNS: dict[str, re.Pattern[str]] = {
     ),
 }
 
+_MATH_PRACTICE_PATTERN = re.compile(
+    r"\b(solve|answer|calculate|simplify|factor|equation|homework|math)\b.*[=+\-*/^]"
+    r"|[0-9xy]\s*[+\-*/^=]\s*[0-9xy]",
+    re.IGNORECASE,
+)
+
 
 def _detect_user_command(
     input_text: str,
@@ -205,6 +213,11 @@ def _detect_user_command(
         if pattern.search(input_text):
             return {"operation": cmd_name}
     return None
+
+
+def _detect_math_practice_request(input_text: str) -> bool:
+    """Detect homework-like math asks that should become similar practice."""
+    return bool(_MATH_PRACTICE_PATTERN.search(input_text))
 
 
 # ── Freeform turn interpreter ──────────────────────────────────
@@ -289,6 +302,10 @@ def freeform_interpret_turn_input(
     if cmd is not None:
         evidence["intent_type"] = "command"
         evidence["command_dispatch"] = cmd
+    elif _detect_math_practice_request(input_text):
+        evidence["intent_type"] = "math_practice_request"
+        evidence["tool_expression"] = input_text
+        evidence.setdefault("command_dispatch", None)
     else:
         evidence.setdefault("command_dispatch", None)
 

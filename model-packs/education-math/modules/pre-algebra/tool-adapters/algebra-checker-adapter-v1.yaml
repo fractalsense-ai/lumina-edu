@@ -1,0 +1,57 @@
+id: adapter/edumath/algebra-checker/v1
+version: "1.0.0"
+tool_name: "Algebra Checker"
+description: >
+  Shared deterministic algebra checker for education-math modules. Supports
+  equivalence, substitution, inequality direction, systems, slope, polynomial
+  structure, and model transcription checks through the algebra_parser tool.
+
+domain_id: domain/edumath/pre-algebra/v1
+
+call_types:
+  - parse_steps
+  - check_equivalence
+  - verify_solution_substitution
+  - check_step_order
+  - check_inequality_direction
+  - check_system_verification
+  - check_slope_computation
+  - check_polynomial_structure
+  - check_model_transcription
+
+input_schema:
+  type: object
+  required: [call_type]
+  properties:
+    call_type:
+      type: string
+    student_work:
+      type: string
+      maxLength: 4096
+    equation:
+      type: string
+      maxLength: 512
+    target_variable:
+      type: string
+      maxLength: 16
+    expected_answer:
+      type: string
+      maxLength: 512
+    proposed_value:
+      type: number
+    submitted_steps:
+      type: array
+    expected_structure:
+      type: object
+
+output_schema:
+  type: object
+  properties:
+    ok:
+      type: boolean
+    evidence:
+      type: object
+    errors:
+      type: array
+      items:
+        type: string

@@ -69,6 +69,7 @@ runtime:
   action_prompt_type_map:
     user_command: user_command
     tool_request: tool_request
+    math_practice_request: math_practice_request
     journal_tier1_breathing: journal_tier1_breathing
     journal_tier2_opt_in_ask: journal_tier2_opt_in_ask
     journal_tier3_safe_person_alert: journal_tier3_safe_person_alert
@@ -78,12 +79,20 @@ runtime:
   deterministic_templates:
     user_command: "Processing your request."
     tool_request: "Checking that for you."
+    math_practice_request: "Here is a similar practice problem."
     journal_tier1_breathing: "Would you like to take a short breathing moment?"
     journal_tier2_opt_in_ask: "Would you like help connecting with a trusted adult?"
     journal_tier3_safe_person_alert: "A trusted adult has been notified."
     guardian_query: "Here is the guardian information available to you."
     guardian_read_only_boundary: "Guardian access is read-only. I cannot change student records from this view."
     default: "I am here with you."
+
+  tool_call_policies:
+    math_practice_request:
+      - tool_id: generate_similar_math_problem
+        payload:
+          expression: "{turn_data.tool_expression}"
+          difficulty: "0.45"
 
 adapters:
   state_builder:
@@ -123,6 +132,9 @@ adapters:
     breathing_regulation:
       module_path: model-packs/education-commons/controllers/journal_adapters.py
       callable: breathing_regulation_tool
+    generate_similar_math_problem:
+      module_path: model-packs/education-math/controllers/practice_bridge.py
+      callable: generate_similar_math_problem
   api_routes:
     post_vocabulary_metric:
       path: /api/education-commons/user/{user_id}/vocabulary-metric

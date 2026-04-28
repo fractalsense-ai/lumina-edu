@@ -1,0 +1,601 @@
+{
+  "id": "domain/edumath/algebra-1/v1",
+  "version": "0.1.0",
+  "domain_authority": {
+    "name": "Lead Algebra 1 Teacher",
+    "role": "Teacher",
+    "pseudonymous_id": "da_algebra1_lead_001"
+  },
+  "meta_authority_id": "domain/eduf/foundation-core/v1",
+  "description": "Algebra 1 for grade 9. All 6 diagnostic laws are active for the first time. Extends Algebra Intro (domain/edumath/algebra-intro/v1) by activating Law 4 (Structure Preservation) and Law 6 (Abstraction/Translation). Covers exponent rules, polynomial operations, factoring quadratics, quadratic graphs, and solving quadratic equations. Artifacts 11–15 of 15 in the full curriculum. Prerequisite: Algebra Intro (domain/edumath/algebra-intro/v1).\n",
+  "department": "Mathematics",
+  "lumina_core_version": "1.0.0",
+  "invariants": [
+    {
+      "id": "equivalence_preserved",
+      "description": "Law 1 (Balance Principle): both sides of every equation must remain algebraically equal after each transformation. Every manipulation — isolating terms, applying the quadratic formula, factoring — must be applied symmetrically.\n",
+      "severity": "critical",
+      "check": "equivalence_preserved",
+      "standing_order_on_violation": "request_more_steps"
+    },
+    {
+      "id": "no_illegal_operations",
+      "description": "Division by zero or any undefined operation is not permitted. Includes taking the square root of a negative discriminant without acknowledging complex/no-real-solution context.\n",
+      "severity": "critical",
+      "check": "illegal_operations == []",
+      "standing_order_on_violation": "request_more_steps"
+    },
+    {
+      "id": "solution_verifies",
+      "description": "Every solution or factored form must be verified. For quadratic roots: substitute into the original equation and confirm it equals zero. For factored forms: expand and confirm the result matches the original polynomial.\n",
+      "severity": "critical",
+      "check": "substitution_check",
+      "standing_order_on_violation": "request_verification_retry"
+    },
+    {
+      "id": "reversibility_order_correct",
+      "description": "Law 2 (Inverse Operations): inverse operations in correct reversed-PEMDAS order. Inherited from pre-algebra and algebra-intro; active when isolating x after applying the square root step. NOTE: LLM-estimated; tool_adapter support planned for v0.2.\n",
+      "severity": "warning",
+      "check": "reversibility_order_correct",
+      "standing_order_on_violation": "hint_reverse_order_of_operations"
+    },
+    {
+      "id": "substitution_valid",
+      "description": "Law 3 (Interchangeability): a factored form is a binding identity for the original expression. Inherited; active during the verify-by-expanding step of factoring and when substituting roots into the original equation. NOTE: LLM-estimated; tool_adapter support planned for v0.2.\n",
+      "severity": "warning",
+      "check": "substitution_valid",
+      "standing_order_on_violation": "request_substitution_verification"
+    },
+    {
+      "id": "relationship_correctly_mapped",
+      "description": "Law 5 (Relational Mapping): the parabola is a U-shaped dynamic relationship. The vertex is the turning point, the axis of symmetry is the balance line, and the direction of opening is determined by the sign of the leading coefficient. NOTE: LLM-estimated; tool_adapter support planned for v0.2.\n",
+      "severity": "warning",
+      "check": "relationship_correctly_mapped",
+      "standing_order_on_violation": "request_rate_identification"
+    },
+    {
+      "id": "standard_method_preferred",
+      "description": "Non-standard solution methods are acceptable but should be flagged for Domain Authority review.\n",
+      "severity": "warning",
+      "check": "method_recognized",
+      "standing_order_on_violation": "request_method_justification",
+      "signal_type": "NOVEL_PATTERN"
+    },
+    {
+      "id": "show_work_minimum",
+      "description": "Solutions must show all required phases. For polynomial expansion: all partial products before collecting like terms. For factoring: factor pair identification, factored form, and expansion to verify. For quadratic equations: standard form, method applied, all roots, and each root verified.\n",
+      "severity": "warning",
+      "check": "step_count >= min_steps",
+      "standing_order_on_violation": "request_more_steps"
+    },
+    {
+      "id": "structure_preserved",
+      "description": "Law 4 (Structure Preservation): the shape of an expression may change (distribute, factor, simplify exponents) but its algebraic value must remain identical. Distributing 3(x+4) as 3x+4 is the canonical elementary failure. Factoring x²+5x+6 as (x+2)(x+2) is the canonical verification failure. NOTE: 'structure_preserved' is a new evidence field, currently estimated by the LLM interpreter; deterministic tool_adapter support planned for v0.2.\n",
+      "severity": "warning",
+      "check": "structure_preserved",
+      "standing_order_on_violation": "request_distribution_correction"
+    },
+    {
+      "id": "model_accurately_transcribed",
+      "description": "Law 6 (Abstraction/Translation): a real-world constraint must be transcribed into a precise mathematical sentence correctly capturing each quantity's role. Canonical failure: writing C = 30m + 0.15 instead of C = 0.15m + 30 (swapping per-unit rate with fixed cost). In quadratic contexts: wrong sign on gravity term or swapping initial height and velocity. NOTE: 'model_accurately_transcribed' is a new evidence field, currently LLM-estimated; deterministic tool_adapter support planned for v0.2.\n",
+      "severity": "warning",
+      "check": "model_accurately_transcribed",
+      "standing_order_on_violation": "request_model_verification"
+    },
+    {
+      "id": "zpd_drift_minor",
+      "description": "The student's challenge level has drifted outside the ZPD band in >= 30% of the recent window turns.\n",
+      "severity": "warning",
+      "check": "outside_pct >= 0.3",
+      "handled_by": "zpd_monitor",
+      "standing_order_on_violation": "zpd_scaffold"
+    },
+    {
+      "id": "zpd_drift_major",
+      "description": "The student's challenge level has drifted outside the ZPD band in >= 50% of recent window turns, or for 3+ consecutive turns.\n",
+      "severity": "warning",
+      "check": "outside_pct >= 0.5",
+      "handled_by": "zpd_monitor",
+      "standing_order_on_violation": "zpd_intervene_or_escalate"
+    },
+    {
+      "id": "fluency_bottleneck",
+      "description": "The student is solving problems correctly but consistently exceeding the time threshold, indicating procedural automaticity has not been achieved at the current tier.\n",
+      "severity": "warning",
+      "check": "average_completion_time > fluency_monitor.time_threshold_seconds",
+      "handled_by": "fluency_monitor",
+      "standing_order_on_violation": "trigger_targeted_hint"
+    }
+  ],
+  "standing_orders": [
+    {
+      "id": "request_more_steps",
+      "action": "request_more_steps",
+      "trigger_condition": "equivalence_preserved or no_illegal_operations or show_work_minimum",
+      "max_attempts": 3,
+      "escalation_on_exhaust": true,
+      "description": "Ask the student to show work at each transformation step. For polynomials: each partial product before collecting. For factoring: factor pair choice, factored form, expansion check. For quadratics: standard form, all intermediate steps, each root, each root verified.\n"
+    },
+    {
+      "id": "request_verification_retry",
+      "action": "request_verification_retry",
+      "trigger_condition": "solution_verifies",
+      "max_attempts": 2,
+      "escalation_on_exhaust": true,
+      "description": "Ask the student to verify. For roots: substitute each root into the original equation and confirm it equals zero. For factored forms: expand using FOIL and confirm it matches the original polynomial.\n"
+    },
+    {
+      "id": "request_distribution_correction",
+      "action": "inject_domain_rule",
+      "trigger_condition": "structure_preserved",
+      "max_attempts": 2,
+      "escalation_on_exhaust": false,
+      "description": "Law 4 scaffold: ask 'Show me the factored form expanded back out — does it match the original expression exactly?' Do not identify the specific distribution error on the first prompt. The expansion check forces the student to discover the structural mismatch.\n"
+    },
+    {
+      "id": "request_model_verification",
+      "action": "request_model_verification",
+      "trigger_condition": "model_accurately_transcribed",
+      "max_attempts": 2,
+      "escalation_on_exhaust": true,
+      "description": "Law 6 scaffold: ask the student to read back each term of their equation in plain language: 'What does each term represent in the real-world situation? What happens to the total when this quantity increases by 1?' Do not identify the wrong term — let re-reading surface the mismatch.\n"
+    },
+    {
+      "id": "request_substitution_verification",
+      "action": "request_substitution_verification",
+      "trigger_condition": "substitution_valid",
+      "max_attempts": 2,
+      "escalation_on_exhaust": true,
+      "description": "Prompt the student to check which expressions they have verified against. Ask them to verify in the one not yet checked.\n"
+    },
+    {
+      "id": "request_rate_identification",
+      "action": "inject_domain_rule",
+      "trigger_condition": "relationship_correctly_mapped",
+      "max_attempts": 2,
+      "escalation_on_exhaust": false,
+      "description": "Law 5 scaffold in quadratic context: ask whether the parabola opens up or down and where the minimum or maximum occurs. Do not state the vertex formula on the first prompt.\n"
+    },
+    {
+      "id": "hint_reverse_order_of_operations",
+      "action": "inject_domain_rule",
+      "trigger_condition": "reversibility_order_correct",
+      "max_attempts": 2,
+      "escalation_on_exhaust": false,
+      "description": "Law 2 scaffold: ask the student to list operations on the variable in order, then undo from last to first.\n"
+    },
+    {
+      "id": "request_method_justification",
+      "action": "request_method_justification",
+      "trigger_condition": "standard_method_preferred",
+      "max_attempts": 1,
+      "escalation_on_exhaust": false,
+      "description": "Acknowledge the non-standard approach and ask the student to explain their reasoning. Flag for Domain Authority review.\n"
+    },
+    {
+      "id": "zpd_scaffold",
+      "action": "zpd_scaffold",
+      "trigger_condition": "zpd_drift_minor",
+      "max_attempts": 3,
+      "escalation_on_exhaust": false,
+      "description": "Reduce challenge level on the next task. Offer an optional hint. Provide additional scaffolding.\n"
+    },
+    {
+      "id": "zpd_intervene_or_escalate",
+      "action": "zpd_intervene_or_escalate",
+      "trigger_condition": "zpd_drift_major or frustration_flag",
+      "max_attempts": 1,
+      "escalation_on_exhaust": true,
+      "description": "Pause the current task. Issue one probe question. If the probe response does not improve state, escalate to teacher.\n"
+    },
+    {
+      "id": "trigger_targeted_hint",
+      "action": "trigger_targeted_hint",
+      "trigger_condition": "fluency_bottleneck",
+      "max_attempts": 3,
+      "escalation_on_exhaust": false,
+      "description": "Provide a targeted procedural hint for the step the student is slowing on. Do not solve the problem.\n"
+    }
+  ],
+  "escalation_triggers": [
+    {
+      "id": "critical_invariant_unresolvable",
+      "condition": "A critical invariant (equivalence_preserved, no_illegal_operations, or solution_verifies) was violated and its standing order has been exhausted without resolution.\n",
+      "target_role": "teacher",
+      "sla_minutes": 30
+    },
+    {
+      "id": "major_zpd_drift_unresolved",
+      "condition": "The zpd_intervene_or_escalate standing order was applied and the probe response did not reduce outside_pct below the minor threshold.\n",
+      "target_role": "teacher",
+      "sla_minutes": 30
+    },
+    {
+      "id": "domain_lib_escalation_event",
+      "condition": "The domain-lib ZPD monitor determined that frustration or major drift warrants teacher intervention.\n",
+      "target_role": "teacher",
+      "sla_minutes": 30
+    },
+    {
+      "id": "novel_pattern_review",
+      "condition": "The standard_method_preferred invariant fired and the student could not explain their non-standard reasoning after one justification request.\n",
+      "target_role": "teacher",
+      "sla_minutes": 120
+    }
+  ],
+  "artifacts": [
+    {
+      "id": "exponent_rules",
+      "name": "Exponent Rules",
+      "unit": "5 — Exponents & Polynomials",
+      "description": "The student can apply product, power, quotient, and negative exponent rules to simplify combined expressions. Law 4 numeric entry point: each rule transforms the expression's shape while preserving its value.\n",
+      "unlock_condition": "mastery >= 0.8 on all required skills, confirmed by boss challenge",
+      "mastery_threshold": 0.8,
+      "skills_required": [
+        "structure_preserved",
+        "show_work_minimum"
+      ]
+    },
+    {
+      "id": "polynomial_operations",
+      "name": "Polynomial Operations — Expansion",
+      "unit": "5 — Exponents & Polynomials",
+      "description": "The student can multiply two binomials using FOIL, listing all four partial products before collecting like terms, and can add and subtract polynomials by combining only like-degree terms. Law 4 assembly.\n",
+      "unlock_condition": "mastery >= 0.8 on all required skills, confirmed by boss challenge",
+      "mastery_threshold": 0.8,
+      "skills_required": [
+        "structure_preserved",
+        "equivalence_preserved",
+        "show_work_minimum"
+      ]
+    },
+    {
+      "id": "factoring_quadratics",
+      "name": "Factoring Quadratics",
+      "unit": "5 — Exponents & Polynomials",
+      "description": "The student can factor a monic quadratic x² + bx + c into (x + p)(x + q) by finding the correct factor pair, and must verify by expanding back to the original. The Law 4 disassembly artifact — the hardest structural diagnostic in the curriculum.\n",
+      "unlock_condition": "mastery >= 0.8 on all required skills, confirmed by boss challenge",
+      "mastery_threshold": 0.8,
+      "skills_required": [
+        "structure_preserved",
+        "equivalence_preserved",
+        "substitution_valid",
+        "show_work_minimum"
+      ]
+    },
+    {
+      "id": "quadratic_graphs_and_vertex",
+      "name": "Quadratic Graphs & the Vertex",
+      "unit": "7 — Quadratic Functions & Equations",
+      "description": "The student can find the axis of symmetry (x = −b/2a), vertex, and x-intercepts of a quadratic in standard form, determine the direction of opening, and identify the minimum or maximum. Law 5 in the quadratic context.\n",
+      "unlock_condition": "mastery >= 0.8 on all required skills, confirmed by boss challenge",
+      "mastery_threshold": 0.8,
+      "skills_required": [
+        "relationship_correctly_mapped",
+        "equivalence_preserved",
+        "show_work_minimum"
+      ]
+    },
+    {
+      "id": "quadratic_equations",
+      "name": "Solving Quadratic Equations",
+      "unit": "7 — Quadratic Functions & Equations",
+      "description": "The student can solve a quadratic by factoring, confirm roots with the quadratic formula, and translate a real-world quadratic constraint from a word problem into a correctly structured equation before solving. All 6 diagnostic laws active simultaneously. The terminal full-sensor artifact.\n",
+      "unlock_condition": "mastery >= 0.8 on all required skills, confirmed by boss challenge",
+      "mastery_threshold": 0.8,
+      "skills_required": [
+        "equivalence_preserved",
+        "reversibility_order_correct",
+        "substitution_valid",
+        "structure_preserved",
+        "relationship_correctly_mapped",
+        "model_accurately_transcribed",
+        "solution_verifies",
+        "show_work_minimum"
+      ]
+    }
+  ],
+  "subsystem_configs": {
+    "zpd_monitor": {
+      "min_challenge": 0.3,
+      "max_challenge": 0.85,
+      "drift_window_turns": 10,
+      "minor_drift_threshold": 0.3,
+      "major_drift_threshold": 0.5,
+      "persistence_required": 3
+    },
+    "fluency_monitor": {
+      "target_consecutive_successes": 3,
+      "time_threshold_seconds": 150,
+      "tier_progression": [
+        {
+          "tier_1": "exponent_rules"
+        },
+        {
+          "tier_2": "polynomial_and_factoring"
+        },
+        {
+          "tier_3": "quadratic_equations"
+        }
+      ]
+    },
+    "equation_difficulty_tiers": [
+      {
+        "tier_id": "tier_1",
+        "label": "Entry — Exponent Rules",
+        "equation_type": "exponent_rules",
+        "equation_template": "xᵃ · xᵇ, (xᵃ)ᵇ, xᵃ/xᵇ, x⁻ⁿ — simplify combined exponent expressions",
+        "min_difficulty": 0.0,
+        "max_difficulty": 0.35
+      },
+      {
+        "tier_id": "tier_2",
+        "label": "Intermediate — Polynomial Operations & Factoring",
+        "equation_type": "polynomial_and_factoring",
+        "equation_template": "(x + a)(x + b) expand  or  x² + bx + c → (x + p)(x + q) factor",
+        "min_difficulty": 0.35,
+        "max_difficulty": 0.65
+      },
+      {
+        "tier_id": "tier_3",
+        "label": "Advanced — Quadratic Equations & Word Problems",
+        "equation_type": "quadratic_equations",
+        "equation_template": "ax² + bx + c = 0 by factoring + quadratic formula; word problem transcription (Law 6)",
+        "min_difficulty": 0.65,
+        "max_difficulty": 1.0
+      }
+    ]
+  },
+  "evidence_schema": {
+    "path": "evidence-schema.json",
+    "version": "1.0",
+    "notes": "New evidence fields introduced by this module: structure_preserved (bool, LLM-estimated, covers distribution errors and incorrect factoring, tool_adapter support planned for v0.2), model_accurately_transcribed (bool, LLM-estimated, covers word-problem transcription errors — wrong operator roles, sign errors in physics models, dimension confusion, variable definition mismatches, tool_adapter support planned for v0.2). Inherited from algebra-intro: substitution_valid, relationship_correctly_mapped, context_interpretation_correct, reversibility_order_correct, inequality_direction_correct, correctness, substitution_check, step_count, equivalence_preserved, illegal_operations, off_task_ratio, frustration_marker_count, hint_used.\n"
+  },
+  "glossary": [
+    {
+      "term": "exponent",
+      "definition": "A superscript number telling how many times the base is multiplied by itself. x⁻ⁿ = 1/xⁿ (negative exponent = reciprocal).",
+      "aliases": [
+        "power",
+        "exponents",
+        "superscript",
+        "raised to"
+      ],
+      "related_terms": [
+        "base",
+        "product rule",
+        "power rule",
+        "quotient rule"
+      ]
+    },
+    {
+      "term": "product rule",
+      "definition": "xᵃ · xᵇ = xᵃ⁺ᵇ. When multiplying same-base powers, keep the base and add the exponents.",
+      "aliases": [
+        "add exponents",
+        "multiply same base"
+      ],
+      "related_terms": [
+        "exponent",
+        "power rule",
+        "quotient rule"
+      ]
+    },
+    {
+      "term": "power rule",
+      "definition": "(xᵃ)ᵇ = xᵃᵇ. When raising a power to another power, multiply the exponents.",
+      "aliases": [
+        "multiply exponents",
+        "power to a power"
+      ],
+      "related_terms": [
+        "exponent",
+        "product rule"
+      ]
+    },
+    {
+      "term": "FOIL",
+      "definition": "Mnemonic for multiplying two binomials: First, Outer, Inner, Last. All four partial products must be computed before collecting like terms.",
+      "aliases": [
+        "First Outer Inner Last",
+        "binomial multiplication",
+        "distribute twice"
+      ],
+      "related_terms": [
+        "polynomial",
+        "factoring",
+        "structure_preserved"
+      ]
+    },
+    {
+      "term": "polynomial",
+      "definition": "An expression with one or more terms, each a constant times a variable raised to a non-negative integer power. Degree 2 = quadratic.",
+      "aliases": [
+        "polynomials",
+        "quadratic",
+        "trinomial",
+        "binomial"
+      ],
+      "related_terms": [
+        "FOIL",
+        "factoring",
+        "like terms"
+      ]
+    },
+    {
+      "term": "factoring",
+      "definition": "Rewriting a polynomial as a product of simpler expressions. For x² + bx + c: find integers p, q with p·q = c and p+q = b, giving (x+p)(x+q). Must verify by expanding.",
+      "aliases": [
+        "factor",
+        "factored form",
+        "reverse FOIL"
+      ],
+      "related_terms": [
+        "FOIL",
+        "roots",
+        "zero product property",
+        "structure_preserved"
+      ]
+    },
+    {
+      "term": "vertex",
+      "definition": "The turning point of a parabola. Minimum if a > 0, maximum if a < 0. x-coordinate: −b/2a. y-coordinate: substitute x back into the original equation.",
+      "aliases": [
+        "turning point",
+        "minimum",
+        "maximum",
+        "vertex point"
+      ],
+      "related_terms": [
+        "axis of symmetry",
+        "parabola",
+        "quadratic",
+        "relationship_correctly_mapped"
+      ]
+    },
+    {
+      "term": "axis of symmetry",
+      "definition": "The vertical line x = −b/2a that divides a parabola into two mirror-image halves. The vertex lies on this line.",
+      "aliases": [
+        "axis",
+        "line of symmetry",
+        "symmetry axis"
+      ],
+      "related_terms": [
+        "vertex",
+        "parabola",
+        "quadratic"
+      ]
+    },
+    {
+      "term": "quadratic formula",
+      "definition": "Universal solver for ax² + bx + c = 0: x = (−b ± √(b²−4ac)) / 2a. The discriminant b²−4ac tells how many real roots exist.",
+      "aliases": [
+        "quadratic equation formula",
+        "abc formula"
+      ],
+      "related_terms": [
+        "discriminant",
+        "roots",
+        "factoring"
+      ]
+    },
+    {
+      "term": "discriminant",
+      "definition": "b²−4ac from the quadratic formula. Positive → two real roots. Zero → one real root. Negative → no real roots.",
+      "aliases": [
+        "b² − 4ac",
+        "b2 - 4ac",
+        "nature of roots"
+      ],
+      "related_terms": [
+        "quadratic formula",
+        "roots"
+      ]
+    },
+    {
+      "term": "zero product property",
+      "definition": "If A · B = 0 then A = 0 or B = 0. How factored quadratics yield their roots.",
+      "aliases": [
+        "zero product",
+        "null factor law",
+        "factor = 0"
+      ],
+      "related_terms": [
+        "factoring",
+        "roots"
+      ]
+    },
+    {
+      "term": "standard form",
+      "definition": "Quadratic standard form: ax² + bx + c = 0, with everything on one side. Required before factoring or using the quadratic formula.",
+      "aliases": [
+        "standard quadratic form"
+      ],
+      "related_terms": [
+        "quadratic formula",
+        "factoring"
+      ]
+    }
+  ],
+  "permissions": {
+    "mode": "750",
+    "owner": "da_algebra1_lead_001",
+    "group": "educators",
+    "acl": [
+      {
+        "role": "operator",
+        "access": "rx",
+        "scope": "evaluation_only"
+      },
+      {
+        "role": "half_operator",
+        "access": "rx",
+        "scope": "log_records_only"
+      },
+      {
+        "domain_role": "student",
+        "access": "x"
+      }
+    ]
+  },
+  "execution_policy": {
+    "deterministic_tools": [
+      "adapter/edumath/algebra-checker/v1"
+    ]
+  },
+  "temporal_policy": {
+    "module_ttl_seconds": 900,
+    "domain_ttl_seconds": 14400,
+    "system_ttl_seconds": 86400
+  },
+  "actor_types": [
+    {
+      "id": "student",
+      "label": "Student",
+      "description": "Learner working through algebra 1 artifacts, producing evidence via problem-solving steps.",
+      "evidence_sources": [
+        "adapter/edumath/algebra-checker/v1"
+      ],
+      "groups": [
+        "learners"
+      ]
+    }
+  ],
+  "actor_groups": {
+    "learners": {
+      "description": "Actors who produce evidence by working through domain artifacts and problem-solving steps.",
+      "members": [
+        "student"
+      ]
+    }
+  },
+  "group_libraries": [
+    {
+      "id": "turn_interpretation",
+      "path": "domain-lib/reference/turn-interpretation-spec-v1.md",
+      "description": "Turn interpretation output schema — defines the JSON structure the SLM must emit when classifying student intent.",
+      "shared_with_modules": [
+        "algebra-1"
+      ]
+    }
+  ],
+  "module_state_schema": {
+    "mastery_dimensions": [
+      "equivalence_preserved",
+      "no_illegal_operations",
+      "solution_verifies",
+      "show_work_minimum"
+    ],
+    "tracked_subsystems": [
+      "affect",
+      "mastery",
+      "challenge_band",
+      "recent_window",
+      "fluency",
+      "challenge",
+      "uncertainty"
+    ],
+    "custom_fields": {}
+  }
+}

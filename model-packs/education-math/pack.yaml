@@ -1,0 +1,45 @@
+# Education Math Model-Pack Manifest
+
+pack_id: education-math
+version: "0.1.0"
+description: >-
+  Math department model-pack for pre-algebra and algebra learning modules,
+  deterministic math tooling, and safe analogous-practice generation.
+
+layers:
+  model:
+    - modules/*/domain-physics.json
+  controller:
+    - controllers/learning_adapters.py
+    - controllers/algebra_tools.py
+    - controllers/math_nlp.py
+    - controllers/problem_generator.py
+    - controllers/practice_bridge.py
+    - modules/*/tool-adapters/*.yaml
+  domain_lib:
+    - domain-lib/reference/
+  view:
+    - prompts/domain-persona-v1.md
+  docs:
+    - docs/
+
+modules:
+  - pre-algebra
+  - algebra-intro
+  - algebra-1
+  - algebra-level-1
+
+default_module: pre-algebra
+
+entry_points:
+  runtime_config: cfg/runtime-config.yaml
+  ui_config: cfg/ui-config.yaml
+  runtime_adapter: controllers/learning_adapters.py
+
+system_role_to_domain_role:
+  root: student
+  admin: student
+  super_admin: student
+  operator: student
+  half_operator: student
+  user: student

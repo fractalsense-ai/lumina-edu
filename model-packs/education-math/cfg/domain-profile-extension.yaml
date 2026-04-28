@@ -1,0 +1,7 @@
+profile_extension:
+  domain: education-math
+  roles:
+    student:
+      label: Student
+      default_module: domain/edumath/pre-algebra/v1
+  active_module_field: domain_id

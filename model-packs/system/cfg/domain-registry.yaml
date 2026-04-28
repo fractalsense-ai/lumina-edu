@@ -60,6 +60,19 @@ domains:
       - safe person
       - vocabulary growth
 
+  education-math:
+    runtime_config_path: model-packs/education-math/cfg/runtime-config.yaml
+    label: Education Math
+    description: Math department pack for pre-algebra and algebra learning modules, deterministic math tooling, and analogous practice generation.
+    module_prefix: edumath
+    keywords:
+      - pre-algebra
+      - algebra
+      - equation
+      - math practice
+      - analogous problem
+      - tutoring
+
   system:
     runtime_config_path: model-packs/system/cfg/runtime-config.yaml
     label: System — Lumina Infrastructure
