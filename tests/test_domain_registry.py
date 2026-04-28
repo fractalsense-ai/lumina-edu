@@ -119,6 +119,17 @@ def test_domain_authority_with_math_module_returns_math(registry: DomainRegistry
 
 
 @pytest.mark.unit
+def test_domain_authority_with_admin_module_returns_admin(registry: DomainRegistry) -> None:
+    """admin with a domain/eduadm/... module -> education-admin domain."""
+    user = {
+        "sub": "da_eduadm_001",
+        "role": "admin",
+        "governed_modules": ["domain/eduadm/teacher/v1"],
+    }
+    assert registry.resolve_default_for_user(user) == "education-admin"
+
+
+@pytest.mark.unit
 def test_educom_prefix_resolves_to_education_commons(registry: DomainRegistry) -> None:
     """The educom module prefix resolves to education-commons."""
     assert registry.resolve_domain_id("educom") == "education-commons"
@@ -130,6 +141,13 @@ def test_edumath_prefix_resolves_to_education_math(registry: DomainRegistry) -> 
     """The edumath module prefix resolves to education-math."""
     assert registry.resolve_domain_id("edumath") == "education-math"
     assert registry.resolve_domain_id("domain/edumath/algebra-1/v1") == "education-math"
+
+
+@pytest.mark.unit
+def test_eduadm_prefix_resolves_to_education_admin(registry: DomainRegistry) -> None:
+    """The eduadm module prefix resolves to education-admin."""
+    assert registry.resolve_domain_id("eduadm") == "education-admin"
+    assert registry.resolve_domain_id("domain/eduadm/teacher/v1") == "education-admin"
 
 
 @pytest.mark.unit

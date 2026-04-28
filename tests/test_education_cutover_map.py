@@ -59,6 +59,41 @@ def test_transform_record_rewrites_nested_active_math_ids() -> None:
     assert record["domain_id"] == "domain/edu/pre-algebra/v1"
 
 
+def test_transform_record_rewrites_nested_active_admin_ids() -> None:
+    cutover = _load_cutover_module()
+
+    record = {
+        "domain_id": "domain/edu/domain-authority/v1",
+        "module_id": "domain/edu/teacher/v1",
+        "governed_modules": [
+            "domain/edu/domain-authority/v1",
+            "domain/edu/teaching-assistant/v1",
+        ],
+        "domain_roles": {
+            "domain/edu/domain-authority/v1": "domain_authority",
+            "domain/edu/teacher/v1": "teacher",
+        },
+        "assignment": {
+            "module_ids": ["domain/edu/teacher/v1"]
+        },
+    }
+
+    transformed = cutover.transform_record(record)
+
+    assert transformed["domain_id"] == "domain/eduadm/domain-authority/v1"
+    assert transformed["module_id"] == "domain/eduadm/teacher/v1"
+    assert transformed["governed_modules"] == [
+        "domain/eduadm/domain-authority/v1",
+        "domain/eduadm/teaching-assistant/v1",
+    ]
+    assert transformed["domain_roles"] == {
+        "domain/eduadm/domain-authority/v1": "domain_authority",
+        "domain/eduadm/teacher/v1": "teacher",
+    }
+    assert transformed["assignment"]["module_ids"] == ["domain/eduadm/teacher/v1"]
+    assert record["domain_id"] == "domain/edu/domain-authority/v1"
+
+
 def test_transform_record_does_not_rewrite_immutable_commitment_records() -> None:
     cutover = _load_cutover_module()
     record = {

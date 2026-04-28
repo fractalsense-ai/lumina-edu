@@ -62,6 +62,11 @@ def test_resolve_exact_system(registry: DomainRegistry) -> None:
     assert registry.resolve_domain_id("system") == "system"
 
 
+@pytest.mark.unit
+def test_resolve_exact_education_admin(registry: DomainRegistry) -> None:
+    assert registry.resolve_domain_id("education-admin") == "education-admin"
+
+
 # ── resolve_domain_id — prefix shorthand ───────────────────────
 
 
@@ -80,6 +85,11 @@ def test_resolve_prefix_agri(registry: DomainRegistry) -> None:
 @pytest.mark.unit
 def test_resolve_prefix_sys(registry: DomainRegistry) -> None:
     assert registry.resolve_domain_id("sys") == "system"
+
+
+@pytest.mark.unit
+def test_resolve_prefix_eduadm(registry: DomainRegistry) -> None:
+    assert registry.resolve_domain_id("eduadm") == "education-admin"
 
 
 # ── resolve_domain_id — path-style inputs ──────────────────────
@@ -106,6 +116,11 @@ def test_resolve_path_domain_agri_with_module(registry: DomainRegistry) -> None:
 @pytest.mark.unit
 def test_resolve_path_domain_sys(registry: DomainRegistry) -> None:
     assert registry.resolve_domain_id("domain/sys") == "system"
+
+
+@pytest.mark.unit
+def test_resolve_path_domain_eduadm_with_module(registry: DomainRegistry) -> None:
+    assert registry.resolve_domain_id("domain/eduadm/teacher/v1") == "education-admin"
 
 
 # ── resolve_domain_id — error cases ───────────────────────────
