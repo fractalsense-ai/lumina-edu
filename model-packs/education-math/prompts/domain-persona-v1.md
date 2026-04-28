@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 target_audience: teenagers (middle school)
 tone_profile: brief, direct, respectful, no slang, diagnostic calm
 forbidden_disclosures:

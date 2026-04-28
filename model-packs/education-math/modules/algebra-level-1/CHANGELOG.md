@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Algebra Level 1 Domain Pack — CHANGELOG
 
 All notable changes to this domain pack will be documented here.

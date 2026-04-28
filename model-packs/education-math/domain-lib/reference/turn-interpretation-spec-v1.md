@@ -1,3 +1,5 @@
+<!-- markdownlint-disable -->
+
 # Turn Interpretation Schema — Education Domain
 
 **Spec ID:** turn-interpretation-spec-v1  
