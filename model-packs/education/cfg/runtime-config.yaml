@@ -14,9 +14,6 @@ runtime:
   domain_profile_extension_path: model-packs/education/cfg/domain-profile-extension.yaml
   profile_templates:
     default: model-packs/education/profiles/student.yaml
-    domain_authority: model-packs/education/profiles/domain_authority.yaml
-    teacher: model-packs/education/profiles/teacher.yaml
-    teaching_assistant: model-packs/education/profiles/teaching_assistant.yaml
     student: model-packs/education/profiles/student.yaml
     parent: model-packs/education/profiles/parent.yaml
 
@@ -37,27 +34,15 @@ runtime:
   module_map:
     domain/edu/general-education/v1:
       module_path: model-packs/education/modules/general-education
-    domain/edu/domain-authority/v1:
-      module_path: model-packs/education/modules/domain-authority
-    domain/edu/teacher/v1:
-      module_path: model-packs/education/modules/teacher
-    domain/edu/teaching-assistant/v1:
-      module_path: model-packs/education/modules/teaching-assistant
     domain/edu/guardian/v1:
       module_path: model-packs/education/modules/guardian
 
   # Role-to-default-module routing: maps domain roles to their default module.
   role_to_default_module:
-    domain_authority: domain/edu/domain-authority/v1
-    teacher: domain/edu/teacher/v1
-    teaching_assistant: domain/edu/teaching-assistant/v1
     student: domain/edu/general-education/v1
     parent: domain/edu/guardian/v1
 
   domain_roles:
-    domain_authority: { tier: admin,          label: "Education Domain Lead" }
-    teacher:          { tier: operator,        label: "Teacher",               may_assign: [student, parent] }
-    teaching_assistant: { tier: half_operator, label: "Teaching Assistant" }
     student:          { tier: user,            label: "Student" }
     parent:           { tier: half_operator,   label: "Guardian/Parent" }
     observer:         { tier: guest,           label: "Observer" }
@@ -134,13 +119,6 @@ runtime:
     advance_tier: task_presentation
     definition_lookup: definition_lookup
     task_complete: task_complete
-    # Governance role action mappings
-    governance_command: governance_command
-    governance_status: governance_status
-    governance_progress: governance_progress
-    governance_management: governance_management
-    governance_escalation: governance_escalation
-    governance_general: governance_general
 
   deterministic_templates:
     hint: "Let's take one small step on {task_id}. Show the next equivalence-preserving move."
@@ -154,13 +132,6 @@ runtime:
     method_justification_request: "You used a non-standard method on {task_id}. Can you explain why your approach works?"
     task_complete: "Correct! Now solve: {task_id}. Show each step."
     default: "Continue with {task_id}. Share your next step and we will verify it together."
-    # Governance role templates
-    governance_command: "Processing your administrative request."
-    governance_status: "Here is the current status for your domain."
-    governance_progress: "Here is the progress overview for your domain."
-    governance_management: "Processing your module management request."
-    governance_escalation: "Here are the current escalations requiring attention."
-    governance_general: "How can I assist you with domain governance today?"
 
   deterministic_templates_mud:
     hint: "{guide_npc}: A {obstacle_theme} blocks the path in {zone}, {protagonist}. Take one small step on {task_id} to continue."
@@ -172,61 +143,10 @@ runtime:
     default: "{guide_npc}: The {obstacle_theme} awaits in {zone}, {protagonist}. Continue with {task_id} to reach the {macguffin}."
 
 # ── Domain Operation Handlers ─────────────────────────────────────────
-# Operations registered here are dispatched by the admin command pipeline
-# before the system elif chain.  Each entry maps an operation name to a
-# handler callable, plus HITL and min-role metadata.
+# Legacy education keeps only the transitional Guardian assignment operation.
+# Staff/governance operations are owned by education-admin.
 # See docs/7-concepts/command-execution-pipeline.md
 operation_handlers:
-  request_module_assignment:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: false
-    min_role: user
-  assign_student:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  remove_student:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  request_teacher_assignment:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  request_ta_assignment:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  assign_module:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  assign_modules:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  remove_module:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  switch_active_module:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
-  assign_ta:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
   assign_guardian:
     module_path: model-packs/education/controllers/education_operations.py
     callable: handle_operation
@@ -288,40 +208,6 @@ adapters:
       module_path: model-packs/education/controllers/api_handlers.py
       callable: dashboard_vocabulary_growth
       roles: [root, admin, teacher]
-    # ── Escalation management (domain-owned) ──────────────────
-    list_escalations:
-      path: /api/escalations
-      method: GET
-      module_path: model-packs/education/controllers/escalation_handlers.py
-      callable: list_escalations
-      roles: []
-    get_escalation_detail:
-      path: /api/escalations/{escalation_id}
-      method: GET
-      module_path: model-packs/education/controllers/escalation_handlers.py
-      callable: get_escalation_detail
-      roles: []
-    clear_stale_escalations:
-      path: /api/escalations/stale
-      method: DELETE
-      module_path: model-packs/education/controllers/escalation_handlers.py
-      callable: clear_stale_escalations
-      roles: []
-    resolve_escalation:
-      path: /api/escalations/{escalation_id}/resolve
-      method: POST
-      module_path: model-packs/education/controllers/escalation_handlers.py
-      callable: resolve_escalation
-      roles: []
-      request_body: {}
-      commit_guard: true
-    # ── Roster status dashboard (domain-owned) ──────────────────
-    roster_status:
-      path: /api/dashboard/education/roster-status
-      method: GET
-      module_path: model-packs/education/controllers/dashboard_handlers.py
-      callable: roster_status
-      roles: []
     # ── Session unlock (domain-owned) ─────────────────────────
     session_unlock:
       path: /api/sessions/{session_id}/unlock

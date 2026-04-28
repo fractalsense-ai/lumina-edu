@@ -214,6 +214,21 @@ class DomainRegistry:
             }
         return routing_map
 
+    def get_related_domain_ids(self, domain_id: str) -> list[str]:
+        """Return configured domain IDs related to ``domain_id``.
+
+        Related domains let governance/admin packs expose dashboards over the
+        subject packs they coordinate without claiming runtime ownership of
+        those subject modules.
+        """
+        entry = self._domains.get(domain_id)
+        if entry is None:
+            raise DomainNotFoundError(domain_id, list(self._domains.keys()))
+        related = entry.get("related_domains") or []
+        if not isinstance(related, list):
+            return []
+        return [str(did) for did in related if str(did) in self._domains]
+
     def resolve_default_for_user(self, user: dict[str, Any] | None) -> str:
         """Return the default domain_id for *user* when NLP routing finds no match.
 

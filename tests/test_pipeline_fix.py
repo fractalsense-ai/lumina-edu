@@ -38,24 +38,24 @@ class TestDomainContextModuleKey:
             task_spec={"task_id": "test"},
             current_task={},
             turn_count=0,
-            domain_id="education",
+            domain_id="education-admin",
             task_presented_at=time.time(),
             module_key=module_key,
         )
 
     def test_module_key_stored(self) -> None:
-        ctx = self._make_ctx("domain/edu/domain-authority/v1")
-        assert ctx.module_key == "domain/edu/domain-authority/v1"
+        ctx = self._make_ctx("domain/eduadm/domain-authority/v1")
+        assert ctx.module_key == "domain/eduadm/domain-authority/v1"
 
     def test_module_key_default_empty(self) -> None:
         ctx = self._make_ctx()
         assert ctx.module_key == ""
 
     def test_to_session_dict_includes_module_key(self) -> None:
-        ctx = self._make_ctx("domain/edu/teacher/v1")
+        ctx = self._make_ctx("domain/eduadm/teacher/v1")
         d = ctx.to_session_dict()
         assert "module_key" in d
-        assert d["module_key"] == "domain/edu/teacher/v1"
+        assert d["module_key"] == "domain/eduadm/teacher/v1"
 
     def test_sync_from_dict_restores_module_key(self) -> None:
         ctx = self._make_ctx("")
@@ -68,13 +68,13 @@ class TestDomainContextModuleKey:
         assert ctx.module_key == "domain/edu/algebra-level-1/v1"
 
     def test_sync_from_dict_without_module_key_preserves_existing(self) -> None:
-        ctx = self._make_ctx("domain/edu/teacher/v1")
+        ctx = self._make_ctx("domain/eduadm/teacher/v1")
         ctx.sync_from_dict({
             "task_spec": {"task_id": "t"},
             "current_task": {},
             "turn_count": 3,
         })
-        assert ctx.module_key == "domain/edu/teacher/v1"
+        assert ctx.module_key == "domain/eduadm/teacher/v1"
 
 
 # ─────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ class TestProcessingModuleKeyLookup:
             "task_spec": {"task_id": "governance"},
             "current_task": {},
             "turn_count": 0,
-            "domain_id": "education",
+            "domain_id": "education-admin",
             "module_key": module_key,
             "task_presented_at": time.time(),
         }
@@ -128,7 +128,7 @@ class TestProcessingModuleKeyLookup:
 
         gov_interpreter = MagicMock(return_value={"query_type": "admin_command", "urgency": "routine"})
         module_map = {
-            "domain/edu/domain-authority/v1": {
+            "domain/eduadm/domain-authority/v1": {
                 "system_prompt": "You are the governance persona.",
                 "turn_interpreter_fn": gov_interpreter,
                 "turn_input_defaults": {"query_type": "general", "urgency": "routine"},
@@ -136,7 +136,7 @@ class TestProcessingModuleKeyLookup:
                 "local_only": True,
             },
         }
-        session = self._make_session(module_key="domain/edu/domain-authority/v1")
+        session = self._make_session(module_key="domain/eduadm/domain-authority/v1")
         runtime = self._make_runtime(module_map=module_map)
 
         mock_registry = MagicMock(**{"get_runtime_context.return_value": runtime})
@@ -169,7 +169,7 @@ class TestProcessingModuleKeyLookup:
 
         session = self._make_session(module_key="")
         runtime = self._make_runtime(module_map={
-            "domain/edu/domain-authority/v1": {"system_prompt": "gov persona"},
+            "domain/eduadm/domain-authority/v1": {"system_prompt": "gov persona"},
         })
 
         interpret_mock = MagicMock(return_value={"query_type": "general"})
@@ -218,7 +218,7 @@ class TestPerModuleLocalOnly:
             "task_spec": {"task_id": "governance"},
             "current_task": {},
             "turn_count": 0,
-            "domain_id": "education",
+            "domain_id": "education-admin",
             "module_key": module_key,
             "task_presented_at": time.time(),
         }
@@ -248,13 +248,13 @@ class TestPerModuleLocalOnly:
 
         gov_interpreter = MagicMock(return_value={"query_type": "admin_command", "urgency": "routine"})
         module_map = {
-            "domain/edu/domain-authority/v1": {
+            "domain/eduadm/domain-authority/v1": {
                 "local_only": True,
                 "turn_interpreter_fn": gov_interpreter,
                 "turn_input_defaults": {"query_type": "general", "urgency": "routine"},
             },
         }
-        session = self._make_session("domain/edu/domain-authority/v1")
+        session = self._make_session("domain/eduadm/domain-authority/v1")
         runtime = self._make_runtime(module_map=module_map)
 
         mock_persistence = MagicMock()
@@ -324,15 +324,14 @@ class TestPerModuleLocalOnly:
         from lumina.core.yaml_loader import load_yaml
         from conftest import merge_module_config_sidecars
 
-        cfg = load_yaml(str(REPO_ROOT / "model-packs/education/cfg/runtime-config.yaml"))
+        cfg = load_yaml(str(REPO_ROOT / "model-packs/education-admin/cfg/runtime-config.yaml"))
         module_map = cfg.get("runtime", {}).get("module_map", {})
         merge_module_config_sidecars(module_map)
 
         governance_modules = [
-            "domain/edu/domain-authority/v1",
-            "domain/edu/teacher/v1",
-            "domain/edu/teaching-assistant/v1",
-            "domain/edu/guardian/v1",
+            "domain/eduadm/domain-authority/v1",
+            "domain/eduadm/teacher/v1",
+            "domain/eduadm/teaching-assistant/v1",
         ]
 
         for mod_id in governance_modules:
@@ -352,10 +351,10 @@ class TestPerModuleLocalOnly:
 
         student_modules = [
             "domain/edu/general-education/v1",
-            "domain/edu/pre-algebra/v1",
-            "domain/edu/algebra-intro/v1",
-            "domain/edu/algebra-1/v1",
-            "domain/edu/algebra-level-1/v1",
+            "domain/edumath/pre-algebra/v1",
+            "domain/edumath/algebra-intro/v1",
+            "domain/edumath/algebra-1/v1",
+            "domain/edumath/algebra-level-1/v1",
         ]
 
         for mod_id in student_modules:
@@ -366,12 +365,12 @@ class TestPerModuleLocalOnly:
 
 
 # ─────────────────────────────────────────────────────────────
-# Phase 4: Education governance TMs exist
+# Phase 4: Education-admin governance TMs exist
 # ─────────────────────────────────────────────────────────────
 
 @pytest.mark.unit
 class TestGovernanceTechnicalManuals:
-    """Education domain-lib must include governance Technical Manuals."""
+    """Education-admin domain-lib must include governance Technical Manuals."""
 
     def test_command_interpreter_spec_exists(self) -> None:
         path = REPO_ROOT / "model-packs/education/domain-lib/reference/command-interpreter-spec-v1.md"
@@ -381,7 +380,7 @@ class TestGovernanceTechnicalManuals:
         assert "education" in text.lower()
 
     def test_governance_turn_interpretation_spec_exists(self) -> None:
-        path = REPO_ROOT / "model-packs/education/domain-lib/reference/governance-turn-interpretation-spec-v1.md"
+        path = REPO_ROOT / "model-packs/education-admin/domain-lib/reference/governance-turn-interpretation-spec-v1.md"
         assert path.exists(), "Missing governance-turn-interpretation-spec-v1.md"
         text = path.read_text(encoding="utf-8")
         assert "Governance Turn Interpretation" in text
@@ -407,7 +406,7 @@ class TestGovernanceTechnicalManuals:
 
     def test_governance_spec_contrasts_with_learning(self) -> None:
         """Governance TM should explicitly contrast with learning evidence."""
-        path = REPO_ROOT / "model-packs/education/domain-lib/reference/governance-turn-interpretation-spec-v1.md"
+        path = REPO_ROOT / "model-packs/education-admin/domain-lib/reference/governance-turn-interpretation-spec-v1.md"
         text = path.read_text(encoding="utf-8")
         # Must mention that governance does NOT produce ZPD/correctness
         assert "correctness" in text
@@ -431,12 +430,12 @@ class TestModuleKeyPersistence:
             task_spec={"task_id": "t"},
             current_task={},
             turn_count=0,
-            domain_id="education",
+            domain_id="education-admin",
             task_presented_at=time.time(),
-            module_key="domain/edu/domain-authority/v1",
+            module_key="domain/eduadm/domain-authority/v1",
         )
-        container = SessionContainer(active_domain_id="education")
-        container.contexts["education"] = ctx
+        container = SessionContainer(active_domain_id="education-admin")
+        container.contexts["education-admin"] = ctx
 
         # Simulate what _persist_session_container builds
         contexts_state: dict[str, Any] = {}
@@ -449,4 +448,4 @@ class TestModuleKeyPersistence:
                 "module_key": c.module_key,
             }
 
-        assert contexts_state["education"]["module_key"] == "domain/edu/domain-authority/v1"
+        assert contexts_state["education-admin"]["module_key"] == "domain/eduadm/domain-authority/v1"

@@ -15,6 +15,11 @@ ADMIN_MODULE_IDS = {
     "domain/eduadm/teacher/v1",
     "domain/eduadm/teaching-assistant/v1",
 }
+LEGACY_ADMIN_IDS = {
+    "domain/edu/domain-authority/v1",
+    "domain/edu/teacher/v1",
+    "domain/edu/teaching-assistant/v1",
+}
 
 
 def test_education_admin_runtime_loads_admin_modules() -> None:
@@ -82,3 +87,21 @@ def test_education_admin_owns_staff_roles_not_guardian_runtime() -> None:
     assert "assign_guardian" not in dispatcher_source
     assert "assign_commons" not in dispatcher_source
     assert "domain/educom/guardian/v1" not in json.dumps(runtime["domain"])
+
+
+def test_legacy_education_no_longer_actively_owns_staff_admin_modules() -> None:
+    runtime = load_runtime_context(REPO_ROOT, "model-packs/education/cfg/runtime-config.yaml")
+    module_ids = set(runtime.get("module_map") or {})
+    role_defaults = runtime.get("role_to_default_module") or {}
+    operations = yaml.safe_load(
+        (REPO_ROOT / "model-packs" / "education" / "cfg" / "runtime-config.yaml").read_text(encoding="utf-8")
+    ).get("operation_handlers") or {}
+
+    assert module_ids == {"domain/edu/general-education/v1", "domain/edu/guardian/v1"}
+    assert module_ids.isdisjoint(LEGACY_ADMIN_IDS)
+    assert "domain_authority" not in role_defaults
+    assert "teacher" not in role_defaults
+    assert "teaching_assistant" not in role_defaults
+    assert "assign_guardian" in operations
+    assert "assign_module" not in operations
+    assert "assign_student" not in operations

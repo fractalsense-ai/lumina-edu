@@ -25,9 +25,9 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# ── Load education helpers via importlib ──────────────────────
+# ── Load education-admin helpers via importlib ─────────────────
 # _helpers.py has no relative imports so it loads standalone.
-_HELPERS_PATH = _REPO_ROOT / "model-packs" / "education" / "controllers" / "ops" / "_helpers.py"
+_HELPERS_PATH = _REPO_ROOT / "model-packs" / "education-admin" / "controllers" / "ops" / "_helpers.py"
 _helpers_spec = importlib.util.spec_from_file_location("edu_helpers_am", str(_HELPERS_PATH))
 _helpers_mod = importlib.util.module_from_spec(_helpers_spec)  # type: ignore[arg-type]
 sys.modules["edu_helpers_am"] = _helpers_mod
@@ -49,7 +49,7 @@ sys.modules[_OPS_PKG_NAME] = _ops_pkg
 # Register _helpers under the fake package so relative import works
 sys.modules[f"{_OPS_PKG_NAME}._helpers"] = _helpers_mod
 
-_MODULES_PATH = _REPO_ROOT / "model-packs" / "education" / "controllers" / "ops" / "modules.py"
+_MODULES_PATH = _REPO_ROOT / "model-packs" / "education-admin" / "controllers" / "ops" / "modules.py"
 _modules_spec = importlib.util.spec_from_file_location(
     f"{_OPS_PKG_NAME}.modules", str(_MODULES_PATH),
 )
@@ -62,7 +62,7 @@ assign_modules_handler = _modules_mod.assign_modules
 switch_active_module_handler = _modules_mod.switch_active_module
 
 # ── Load governance adapters for NLP tests ────────────────────
-_GOV_PATH = _REPO_ROOT / "model-packs" / "education" / "controllers" / "governance_adapters.py"
+_GOV_PATH = _REPO_ROOT / "model-packs" / "education-admin" / "controllers" / "governance_adapters.py"
 _gov_spec = importlib.util.spec_from_file_location("gov_adapters_am", str(_GOV_PATH))
 _gov_mod = importlib.util.module_from_spec(_gov_spec)  # type: ignore[arg-type]
 sys.modules["gov_adapters_am"] = _gov_mod
@@ -74,10 +74,9 @@ _edu_fallback = _gov_mod._deterministic_command_fallback
 
 # ── Test data ─────────────────────────────────────────────────
 
-_EDU_SAMPLE_MODULES = [
-    {"module_id": "domain/edu/general-education/v1", "domain_physics_path": "dp/ge.json", "local_only": False},
-    {"module_id": "domain/edu/teacher/v1", "domain_physics_path": "dp/t.json", "local_only": True},
-    {"module_id": "domain/edu/domain-authority/v1", "domain_physics_path": "dp/da.json", "local_only": True},
+_ADMIN_SAMPLE_MODULES = [
+    {"module_id": "domain/eduadm/teacher/v1", "domain_physics_path": "dp/t.json", "local_only": True},
+    {"module_id": "domain/eduadm/domain-authority/v1", "domain_physics_path": "dp/da.json", "local_only": True},
 ]
 
 _MATH_SAMPLE_MODULES = [
@@ -106,17 +105,17 @@ def _make_ctx(
             return modules
         if domain == "education-math":
             return _MATH_SAMPLE_MODULES
-        return _EDU_SAMPLE_MODULES
+        return _ADMIN_SAMPLE_MODULES
 
     ctx.domain_registry.list_modules_for_domain.side_effect = _list_modules
-    ctx.domain_registry.resolve_default_for_user.return_value = "education"
+    ctx.domain_registry.resolve_default_for_user.return_value = "education-admin"
     ctx.domain_registry.resolve_domain_id.side_effect = lambda module_id: (
-        "education-math" if str(module_id).startswith("domain/edumath/") else "education"
+        "education-math" if str(module_id).startswith("domain/edumath/") else "education-admin"
     )
     ctx.domain_registry.get_runtime_context.side_effect = lambda domain: {
         "module_map": {
             m["module_id"]: {"ui_overrides": {}, "domain_physics_path": m["domain_physics_path"]}
-            for m in (_MATH_SAMPLE_MODULES if domain == "education-math" else _EDU_SAMPLE_MODULES)
+            for m in (_MATH_SAMPLE_MODULES if domain == "education-math" else _ADMIN_SAMPLE_MODULES)
         },
     }
 
@@ -146,7 +145,7 @@ def _teacher_user(sub: str = "teacher1") -> dict[str, Any]:
     return {
         "sub": sub,
         "role": "user",
-        "domain_roles": {"domain/edu/teacher/v1": "teacher"},
+        "domain_roles": {"domain/eduadm/teacher/v1": "teacher"},
         "scoped_capabilities": {},
     }
 
@@ -156,7 +155,7 @@ def _da_user(sub: str = "da1") -> dict[str, Any]:
         "sub": sub,
         "role": "admin",
         "domain_roles": {},
-        "governed_modules": ["domain/edu/general-education/v1"],
+        "governed_modules": ["domain/eduadm/domain-authority/v1"],
     }
 
 
@@ -182,7 +181,7 @@ class TestExtractShortName:
         assert extract_short_name("domain/edu/general-education/v1") == "general-education"
 
     def test_role_module(self) -> None:
-        assert extract_short_name("domain/edu/teacher/v1") == "teacher"
+        assert extract_short_name("domain/eduadm/teacher/v1") == "teacher"
 
     def test_short_id_passthrough(self) -> None:
         assert extract_short_name("pre-algebra") == "pre-algebra"
@@ -211,7 +210,7 @@ class TestResolveModuleShortname:
 
     def test_role_module_resolvable(self) -> None:
         ctx = _make_ctx()
-        assert resolve_module_shortname(ctx, "teacher") == "domain/edu/teacher/v1"
+        assert resolve_module_shortname(ctx, "teacher") == "domain/eduadm/teacher/v1"
 
 
 @pytest.mark.unit
@@ -222,20 +221,20 @@ class TestListLearningModules:
         result = list_learning_modules(ctx)
         ids = [m["module_id"] for m in result]
         assert "domain/edumath/pre-algebra/v1" in ids
-        assert "domain/edu/teacher/v1" not in ids
-        assert "domain/edu/domain-authority/v1" not in ids
+        assert "domain/eduadm/teacher/v1" not in ids
+        assert "domain/eduadm/domain-authority/v1" not in ids
 
     def test_includes_short_names(self) -> None:
         ctx = _make_ctx()
         result = list_learning_modules(ctx)
         shorts = {m["short_name"] for m in result}
         assert "pre-algebra" in shorts
-        assert "general-education" in shorts
+        assert "general-education" not in shorts
 
     def test_count(self) -> None:
         ctx = _make_ctx()
         result = list_learning_modules(ctx)
-        assert len(result) == 3  # ge, pre-algebra, algebra-intro
+        assert len(result) == 2  # pre-algebra, algebra-intro
 
 
 # ═════════════════════════════════════════════════════════════

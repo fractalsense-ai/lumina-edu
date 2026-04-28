@@ -8,7 +8,7 @@
 # last_updated: 2026-04-04
 pack_id: education
 version: "0.1.0"
-description: "Legacy education coordination pack for general education, guardian access, and administrative modules during model-pack decomposition. Math learning modules are owned by education-math."
+description: "Legacy education coordination pack for general education and transitional guardian access during model-pack decomposition. Math learning modules are owned by education-math; active staff/governance modules are owned by education-admin."
 
 # ── HMVC Layer Map ────────────────────────────────────────────────────
 layers:
@@ -19,7 +19,7 @@ layers:
   controller:
     - controllers/runtime_adapters.py
     - controllers/nlp_pre_interpreter.py
-    - controllers/education_operations.py   # domain admin operation handlers
+    - controllers/education_operations.py   # transitional guardian operation handler
     - modules/*/tool-adapters/*.yaml
   domain_lib:
     - domain-lib/reference/turn-interpretation-spec-v1.md
@@ -35,9 +35,6 @@ layers:
 # ── Modules ───────────────────────────────────────────────────────────
 modules:
   - general-education
-  - domain-authority
-  - teacher
-  - teaching-assistant
   - guardian
 
 # ── Default Module ────────────────────────────────────────────────────

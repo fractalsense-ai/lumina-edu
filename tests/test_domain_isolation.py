@@ -8,7 +8,7 @@ Validates that:
 - list_escalations enforces can_govern_domain boundary.
 - _normalize_slm_command infers domain_id for list_users/list_escalations/
   list_modules from instruction text.
-- Education NLP fallback injects domain_id: "education" automatically.
+- Education Admin NLP fallback injects domain_id: "education-admin" automatically.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import pytest
 from lumina.system_log.admin_operations import can_govern_domain
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-_EDU_CONTROLLERS = REPO_ROOT / "model-packs" / "education" / "controllers"
+_EDU_CONTROLLERS = REPO_ROOT / "model-packs" / "education-admin" / "controllers"
 if str(_EDU_CONTROLLERS) not in sys.path:
     sys.path.insert(0, str(_EDU_CONTROLLERS))
 
@@ -508,17 +508,17 @@ def test_normalize_does_not_override_existing_domain_id() -> None:
         _cfg.DOMAIN_REGISTRY = original
 
 
-# ── Education NLP domain injection ───────────────────────────────────────────
+# ── Education Admin NLP domain injection ─────────────────────────────────────
 
 
 @pytest.mark.unit
 def test_education_fallback_injects_domain_for_list_users() -> None:
-    """Education _deterministic_command_fallback injects domain_id: education."""
+    """Education Admin fallback injects domain_id: education-admin."""
     mod = _load_governance_adapters()
     result = mod._deterministic_command_fallback("list users", {"query_type": "admin_command"})
     assert result is not None
     assert result["operation"] == "list_users"
-    assert result["params"]["domain_id"] == "education"
+    assert result["params"]["domain_id"] == "education-admin"
 
 
 @pytest.mark.unit
@@ -527,7 +527,7 @@ def test_education_fallback_injects_domain_for_list_escalations() -> None:
     result = mod._deterministic_command_fallback("list escalations", {"query_type": "admin_command"})
     assert result is not None
     assert result["operation"] == "list_escalations"
-    assert result["params"]["domain_id"] == "education"
+    assert result["params"]["domain_id"] == "education-admin"
 
 
 @pytest.mark.unit
@@ -536,4 +536,4 @@ def test_education_fallback_injects_domain_for_list_modules() -> None:
     result = mod._deterministic_command_fallback("show modules", {"query_type": "admin_command"})
     assert result is not None
     assert result["operation"] == "list_modules"
-    assert result["params"]["domain_id"] == "education"
+    assert result["params"]["domain_id"] == "education-admin"

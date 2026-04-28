@@ -237,8 +237,8 @@ def md_client(multi_domain_module):
 
 @pytest.mark.integration
 def test_invite_domain_id_resolved_from_module_path(md_client: TestClient, multi_domain_module) -> None:
-    """When domain_id is a module path like 'domain/edu/domain-authority/v1',
-    it should be resolved to the registry domain_id 'education'."""
+    """When domain_id is a module path like 'domain/eduadm/domain-authority/v1',
+    it should be resolved to the registry domain_id 'education-admin'."""
     # First register to consume bootstrap slot (gets promoted to root)
     root_resp = md_client.post(
         "/api/auth/register",
@@ -252,7 +252,7 @@ def test_invite_domain_id_resolved_from_module_path(md_client: TestClient, multi
         json={
             "operation": "invite_user",
             "params": {"username": "NewStudent", "role": "user", "intended_domain_role": "student"},
-            "domain_id": "domain/edu/domain-authority/v1",
+            "domain_id": "domain/eduadm/domain-authority/v1",
         },
         headers={"Authorization": f"Bearer {root_token}"},
     )
@@ -260,4 +260,4 @@ def test_invite_domain_id_resolved_from_module_path(md_client: TestClient, multi
     body = resp.json()
     staged = body["staged_command"]
     # domain_id must be resolved to the registry domain ID, not the raw module path
-    assert staged["params"]["domain_id"] == "education"
+    assert staged["params"]["domain_id"] == "education-admin"

@@ -23,9 +23,9 @@ import pytest
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# ── Load education governance_adapters via importlib ──────────
+# ── Load education-admin governance_adapters via importlib ─────
 _GOV_PATH = (
-    _REPO_ROOT / "model-packs" / "education" / "controllers" / "governance_adapters.py"
+    _REPO_ROOT / "model-packs" / "education-admin" / "controllers" / "governance_adapters.py"
 )
 _gov_spec = importlib.util.spec_from_file_location("governance_adapters", str(_GOV_PATH))
 _gov_mod = importlib.util.module_from_spec(_gov_spec)  # type: ignore[arg-type]
@@ -48,7 +48,7 @@ _sys_maybe_promote = _sys_mod._maybe_promote_query_type
 
 # ── Load NLP pre-interpreter via importlib ────────────────────
 _NLP_PATH = (
-    _REPO_ROOT / "model-packs" / "education" / "controllers" / "nlp_pre_interpreter.py"
+    _REPO_ROOT / "model-packs" / "education-admin" / "controllers" / "governance_nlp.py"
 )
 _nlp_spec = importlib.util.spec_from_file_location("nlp_pre_interp", str(_NLP_PATH))
 _nlp_mod = importlib.util.module_from_spec(_nlp_spec)  # type: ignore[arg-type]
@@ -56,7 +56,7 @@ sys.modules["nlp_pre_interp"] = _nlp_mod
 _nlp_spec.loader.exec_module(_nlp_mod)  # type: ignore[union-attr]
 
 _extract_gov_signals = _nlp_mod.extract_governance_signals
-_nlp_preprocess = _nlp_mod.nlp_preprocess
+_nlp_preprocess = _nlp_mod.governance_nlp_preprocess
 
 
 # ─────────────────────────────────────────────────────────────

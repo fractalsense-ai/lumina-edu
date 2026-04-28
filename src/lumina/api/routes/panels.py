@@ -96,7 +96,26 @@ def _find_panel_config(
     return None
 
 
-def _resolve_da_governed(user_data: dict[str, Any]) -> set[str] | None:
+def _related_domain_ids(domain_id: str) -> list[str]:
+    getter = getattr(_cfg.DOMAIN_REGISTRY, "get_related_domain_ids", None)
+    if getter is None:
+        return []
+    try:
+        return list(getter(domain_id))
+    except Exception:
+        return []
+
+
+def _add_domain_scope(governed: set[str], domain_id: str) -> None:
+    governed.add(domain_id)
+    try:
+        rt = _cfg.DOMAIN_REGISTRY.get_runtime_context(domain_id)
+        governed |= set(rt.get("module_map") or {})
+    except Exception:
+        pass
+
+
+def _resolve_da_governed(user_data: dict[str, Any], domain_id: str | None = None) -> set[str] | None:
     """Return the effective governed-module set for an admin.
 
     Returns ``None`` for non-DA roles (meaning no filtering needed).
@@ -111,14 +130,12 @@ def _resolve_da_governed(user_data: dict[str, Any]) -> set[str] | None:
     if governed or domain_roles:
         governed |= set(domain_roles.keys())
     else:
-        # Unrestricted DA — resolve all modules in their default domain
-        default_domain = _cfg.DOMAIN_REGISTRY.resolve_default_for_user(user_data)
-        governed.add(default_domain)
-        try:
-            rt = _cfg.DOMAIN_REGISTRY.get_runtime_context(default_domain)
-            governed |= set(rt.get("module_map") or {})
-        except Exception:
-            pass
+        # Unrestricted DA — resolve all modules in the current layout domain,
+        # plus any configured related domains coordinated by that admin pack.
+        default_domain = domain_id or _cfg.DOMAIN_REGISTRY.resolve_default_for_user(user_data)
+        _add_domain_scope(governed, default_domain)
+        for related_domain in _related_domain_ids(default_domain):
+            _add_domain_scope(governed, related_domain)
         return governed
     # Expand to include bare domain_ids for domains containing governed modules
     for d in _cfg.DOMAIN_REGISTRY.list_domains():
@@ -289,7 +306,7 @@ async def _resolve_domain_overview(
     if user_data.get("role") not in ("root", "admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Insufficient system role")
 
-    governed = _resolve_da_governed(user_data)
+    governed = _resolve_da_governed(user_data, pcfg.get("_domain_id"))
 
     # ── DA gets a module-centric overview ──────────────────────
     if governed is not None:
@@ -366,7 +383,7 @@ async def _resolve_module_directory(
     """Module inventory — requires elevated system role."""
     if user_data.get("role") not in ("root", "admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Insufficient system role")
-    governed = _resolve_da_governed(user_data)
+    governed = _resolve_da_governed(user_data, pcfg.get("_domain_id"))
     all_domains = _cfg.DOMAIN_REGISTRY.list_domains()
     modules = []
     for d in all_domains:
@@ -427,7 +444,7 @@ async def _resolve_escalation_queue(
     # Domain-role holders (teacher, admin) see escalations for
     # their assigned modules; system admins see everything.
     domain_roles_map = user_data.get("domain_roles") or {}
-    governed = _resolve_da_governed(user_data)
+    governed = _resolve_da_governed(user_data, pcfg.get("_domain_id"))
     system_admin = user_data.get("role") in ("root", "super_admin", "operator", "half_operator")
 
     if not system_admin and not governed and not domain_roles_map:
@@ -460,7 +477,7 @@ async def _resolve_staff_directory(
     """Staff visible to the domain authority — teachers, TAs, and DAs."""
     if user_data.get("role") not in ("root", "admin", "super_admin"):
         raise HTTPException(status_code=403, detail="Insufficient system role")
-    governed = _resolve_da_governed(user_data)
+    governed = _resolve_da_governed(user_data, pcfg.get("_domain_id"))
     all_users = await run_in_threadpool(_cfg.PERSISTENCE.list_users)
     staff: list[dict[str, Any]] = []
     _seen_ids: set[str] = set()

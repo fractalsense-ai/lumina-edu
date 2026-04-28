@@ -27,7 +27,7 @@ import pytest
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 
 # ── Load adapters via importlib ───────────────────────────────
-_GOV_PATH = _REPO_ROOT / "model-packs" / "education" / "controllers" / "governance_adapters.py"
+_GOV_PATH = _REPO_ROOT / "model-packs" / "education-admin" / "controllers" / "governance_adapters.py"
 _gov_spec = importlib.util.spec_from_file_location("gov_adapters_umm", str(_GOV_PATH))
 _gov_mod = importlib.util.module_from_spec(_gov_spec)  # type: ignore[arg-type]
 sys.modules["gov_adapters_umm"] = _gov_mod
@@ -57,11 +57,13 @@ def _mock_cfg() -> MagicMock:
     cfg.PERSISTENCE.save_subject_profile.return_value = None
     cfg.PERSISTENCE.get_user_by_username.return_value = None
     cfg.PERSISTENCE.update_user_governed_modules.return_value = {"governed_modules": []}
-    cfg.DOMAIN_REGISTRY.resolve_domain_id.return_value = "education"
+    cfg.DOMAIN_REGISTRY.resolve_domain_id.return_value = "education-admin"
     cfg.DOMAIN_REGISTRY.list_modules_for_domain.return_value = [
-        {"module_id": "edu-core", "domain_id": "education"},
+        {"module_id": "domain/eduadm/teacher/v1", "domain_id": "education-admin"},
     ]
-    cfg.DOMAIN_REGISTRY.list_domains.return_value = [{"domain_id": "education", "runtime_config_path": "model-packs/education/cfg/runtime-config.yaml"}]
+    cfg.DOMAIN_REGISTRY.list_domains.return_value = [
+        {"domain_id": "education-admin", "runtime_config_path": "model-packs/education-admin/cfg/runtime-config.yaml"},
+    ]
     return cfg
 
 
@@ -101,12 +103,19 @@ def _student_user(sub: str = "student1") -> dict[str, Any]:
 
 
 def _exec(user_data, parsed, instruction="test"):
-    from lumina.api.routes.admin import _execute_admin_operation
-    return asyncio.run(_execute_admin_operation(user_data, parsed, instruction))
+    from lumina.api import governance as gov
+    from lumina.api.routes import admin as admin_route
+
+    original_cfg = gov._cfg
+    gov._cfg = admin_route._cfg
+    try:
+        return asyncio.run(admin_route._execute_admin_operation(user_data, parsed, instruction))
+    finally:
+        gov._cfg = original_cfg
 
 
 # ─────────────────────────────────────────────────────────────
-# Phase 1: SLM promotion — education adapter
+# Phase 1: SLM promotion — education-admin adapter
 # ─────────────────────────────────────────────────────────────
 
 @pytest.mark.unit
@@ -152,7 +161,7 @@ class TestStudentModulePromotion:
 
 
 # ─────────────────────────────────────────────────────────────
-# Phase 2: Deterministic fallback — education adapter
+# Phase 2: Deterministic fallback — education-admin adapter
 # ─────────────────────────────────────────────────────────────
 
 @pytest.mark.unit

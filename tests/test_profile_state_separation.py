@@ -169,9 +169,9 @@ class TestRuntimeConfigInitialModuleState:
     ]
 
     _GOVERNANCE_MODULES = [
-        "domain/edu/domain-authority/v1",
-        "domain/edu/teacher/v1",
-        "domain/edu/teaching-assistant/v1",
+        "domain/eduadm/domain-authority/v1",
+        "domain/eduadm/teacher/v1",
+        "domain/eduadm/teaching-assistant/v1",
     ]
 
     def test_learning_modules_have_initial_module_state(self) -> None:
@@ -186,7 +186,7 @@ class TestRuntimeConfigInitialModuleState:
             assert "fluency" in ims, f"{mod_id}: missing fluency"
 
     def test_governance_modules_no_initial_module_state(self) -> None:
-        cfg = _load_runtime_config()
+        cfg = _load_runtime_config("education-admin")
         module_map = cfg["runtime"]["module_map"]
         for mod_id in self._GOVERNANCE_MODULES:
             entry = module_map[mod_id]

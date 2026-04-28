@@ -78,6 +78,8 @@ domains:
     label: Education Admin
     description: School administration, classroom governance, teacher and teaching-assistant workflows, roster coordination, escalation review, and cross-pack module assignment.
     module_prefix: eduadm
+    related_domains:
+      - education-math
     keywords:
       - education admin
       - domain authority

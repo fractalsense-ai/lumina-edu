@@ -1,8 +1,9 @@
 """Tests for active education/education-math module routing.
 
-The legacy education pack keeps general/admin/guardian modules active. Math
-learning modules are owned by the education-math pack; old domain/edu/* math
-IDs are migration inputs only.
+The legacy education pack keeps general/guardian modules active. Math learning
+modules are owned by the education-math pack, and staff/admin modules are owned
+by the education-admin pack. Old domain/edu/* math/admin IDs are migration
+inputs only.
 """
 from __future__ import annotations
 
@@ -19,10 +20,13 @@ MATH_MODULES = REPO_ROOT / "model-packs" / "education-math" / "modules"
 
 LEGACY_EDU_ACTIVE_MODULE_IDS = [
     "domain/edu/general-education/v1",
+    "domain/edu/guardian/v1",
+]
+
+LEGACY_ADMIN_IDS = [
     "domain/edu/domain-authority/v1",
     "domain/edu/teacher/v1",
     "domain/edu/teaching-assistant/v1",
-    "domain/edu/guardian/v1",
 ]
 
 MATH_MODULE_IDS = [
@@ -101,6 +105,8 @@ class TestLegacyEducationModuleMapStructure:
         assert set(edu_module_map) == set(LEGACY_EDU_ACTIVE_MODULE_IDS)
         for legacy_math_id in LEGACY_MATH_IDS:
             assert legacy_math_id not in edu_module_map
+        for legacy_admin_id in LEGACY_ADMIN_IDS:
+            assert legacy_admin_id not in edu_module_map
 
     @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
     def test_expected_legacy_domain_ids_present(self, edu_module_map, domain_id):
