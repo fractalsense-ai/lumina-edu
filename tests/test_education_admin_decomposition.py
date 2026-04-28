@@ -42,7 +42,8 @@ def test_education_admin_module_sidecars_are_retargeted() -> None:
         physics = module_cfg.get("domain_physics")
         assert isinstance(physics, dict), module_id
         assert physics["id"] == module_id
-        assert "model-packs/education-admin" in module_cfg["domain_physics_path"]
+        resolved_physics_path = module_cfg["domain_physics_path"].replace("\\", "/")
+        assert "model-packs/education-admin" in resolved_physics_path
 
 
 def test_education_admin_pack_manifest_matches_runtime_modules() -> None:

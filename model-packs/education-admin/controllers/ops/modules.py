@@ -18,7 +18,7 @@ from ._helpers import (
     write_commitment,
 )
 
-log = logging.getLogger("lumina.education-ops")
+log = logging.getLogger("lumina.education-admin-ops")
 
 
 # ── assign_module ─────────────────────────────────────────────
@@ -123,7 +123,7 @@ async def switch_active_module(
 ) -> dict[str, Any]:
     """Self-service module switch for users.
 
-    Works across all domains (education, assistant, etc.) by resolving
+    Works across all domains (education-admin, education-math, etc.) by resolving
     the user's active domain from governed_modules at runtime.
     Only switches to modules the user already has state in
     (profile["modules"] keys) or is listed in governed_modules.
@@ -140,8 +140,8 @@ async def switch_active_module(
     user_rec = await ctx.run_in_threadpool(ctx.persistence.get_user, user_id)
 
     # Derive active domain so this handler works across all domains, not
-    # just education.  Falls back to "education" for backward compatibility.
-    _user_domain = "education"
+    # just education-admin.  Falls back to education-admin for this pack.
+    _user_domain = "education-admin"
     if user_rec:
         try:
             _resolved = ctx.domain_registry.resolve_default_for_user(user_rec)
@@ -258,7 +258,7 @@ async def assign_modules(
     if caller_role in ("root", "admin"):
         if caller_role == "admin":
             # DA must govern the Education Admin Domain
-            if not ctx.can_govern_domain(user_data, "education", registry=ctx.domain_registry):
+            if not ctx.can_govern_domain(user_data, "education-admin", registry=ctx.domain_registry):
                 raise ctx.HTTPException(status_code=403, detail="Not authorised for Education Admin Domain")
     elif caller_role == "user":
         await require_module_governance(user_data, ctx)

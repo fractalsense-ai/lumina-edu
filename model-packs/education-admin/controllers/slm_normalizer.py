@@ -1,8 +1,8 @@
-"""Education-domain SLM command normalizer.
+"""Education-admin SLM command normalizer.
 
 Registered as the ``slm_normalizer`` adapter in runtime-config.yaml and
 called by the system-level ``_normalize_slm_command()`` after generic
-structural normalization.  Handles education-specific role alias mapping,
+structural normalization.  Handles education-admin role alias mapping,
 domain-prefix stripping, and ``intended_domain_role`` / ``domain_id``
 inference from instruction text.
 """
@@ -12,14 +12,13 @@ from __future__ import annotations
 import re
 from typing import Any
 
-# Education-domain role aliases — used as defaults when the system layer
+# Education-admin role aliases — used as defaults when the system layer
 # provides no dynamic aliases (e.g. single-domain mode without
 # maps_to_system_role entries in domain-physics.json).
 _EDUCATION_ROLE_ALIASES: dict[str, str] = {
-    "student": "user",
     "teacher": "user",
     "teaching_assistant": "user",
-    "parent": "user",
+    "domain_authority": "admin",
 }
 
 

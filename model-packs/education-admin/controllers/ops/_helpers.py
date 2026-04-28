@@ -10,10 +10,10 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-log = logging.getLogger("lumina.education-ops")
+log = logging.getLogger("lumina.education-admin-ops")
 
 RELATED_LEARNING_DOMAINS: dict[str, tuple[str, ...]] = {
-    "education": ("education-math",),
+    "education-admin": ("education-math",),
 }
 
 
@@ -79,7 +79,7 @@ async def require_module_governance(
 async def load_profile(
     ctx: Any,
     user_id: str,
-    domain: str = "education",
+    domain: str = "education-admin",
 ) -> dict[str, Any]:
     """Load a user's subject-profile, returning ``{}`` on any failure."""
     path = str(ctx.resolve_user_profile_path(user_id, domain))
@@ -95,7 +95,7 @@ async def save_profile(
     ctx: Any,
     user_id: str,
     profile: dict[str, Any],
-    domain: str = "education",
+    domain: str = "education-admin",
 ) -> None:
     """Persist a user's subject-profile."""
     path = str(ctx.resolve_user_profile_path(user_id, domain))
@@ -178,7 +178,7 @@ def extract_short_name(module_id: str) -> str:
     return module_id
 
 
-def list_learning_modules(ctx: Any, domain: str = "education") -> list[dict[str, Any]]:
+def list_learning_modules(ctx: Any, domain: str = "education-admin") -> list[dict[str, Any]]:
     """Return non-role modules (``local_only`` is false) with short names.
 
     Each dict contains ``module_id``, ``short_name``, and
@@ -204,7 +204,7 @@ def list_learning_modules(ctx: Any, domain: str = "education") -> list[dict[str,
 def resolve_module_shortname(
     ctx: Any,
     name: str,
-    domain: str = "education",
+    domain: str = "education-admin",
 ) -> str:
     """Resolve a short name like ``pre-algebra`` to a full module id.
 

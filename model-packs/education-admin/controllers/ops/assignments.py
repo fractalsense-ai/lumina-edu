@@ -17,7 +17,7 @@ from ._helpers import (
     write_commitment,
 )
 
-log = logging.getLogger("lumina.education-ops")
+log = logging.getLogger("lumina.education-admin-ops")
 
 
 # ── request_module_assignment ─────────────────────────────────
