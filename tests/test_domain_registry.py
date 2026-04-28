@@ -76,11 +76,11 @@ def test_user_role_returns_global_default(registry: DomainRegistry) -> None:
 
 @pytest.mark.unit
 def test_domain_authority_with_edu_module_returns_education(registry: DomainRegistry) -> None:
-    """admin with a domain/edu/... module -> education domain."""
+    """admin with a non-math domain/edu/... module -> education domain."""
     user = {
         "sub": "da_001",
         "role": "admin",
-        "governed_modules": ["domain/edu/algebra-level-1/v1"],
+        "governed_modules": ["domain/edu/general-education/v1"],
     }
     assert registry.resolve_default_for_user(user) == "education"
 
@@ -161,7 +161,7 @@ def test_domain_authority_uses_first_governed_module_only(registry: DomainRegist
         "sub": "da_004",
         "role": "admin",
         "governed_modules": [
-            "domain/edu/algebra-level-1/v1",
+            "domain/edu/general-education/v1",
             "domain/eduf/foundation-core/v1",
         ],
     }

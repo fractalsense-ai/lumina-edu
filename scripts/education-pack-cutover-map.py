@@ -35,6 +35,10 @@ def replace_id(value: Any, mapping: dict[str, str]) -> Any:
     return value
 
 
+def is_immutable_history_record(record: dict[str, Any]) -> bool:
+    return "record_id" in record and "commitment_type" in record
+
+
 def transform_record(record: dict[str, Any], cutover_map: dict[str, Any] | None = None) -> dict[str, Any]:
     """Return a migrated copy of an active record.
 
@@ -42,6 +46,8 @@ def transform_record(record: dict[str, Any], cutover_map: dict[str, Any] | None 
     pack-level aliases. It is safe for nested profile/module-state documents.
     """
     data = deepcopy(record)
+    if is_immutable_history_record(data):
+        return data
     cutover = cutover_map or load_cutover_map()
     mapping: dict[str, str] = {}
     mapping.update(cutover.get("pack_ids") or {})

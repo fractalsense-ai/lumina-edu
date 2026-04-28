@@ -64,11 +64,14 @@ _MODULE_MAP = {
         "domain_physics_path": "dp/ge.json",
         "ui_overrides": {"subtitle": "Student Commons"},
     },
-    "domain/edu/pre-algebra/v1": {
+}
+
+_MATH_MODULE_MAP = {
+    "domain/edumath/pre-algebra/v1": {
         "domain_physics_path": "dp/pa.json",
         "ui_overrides": {"subtitle": "Pre-Algebra"},
     },
-    "domain/edu/algebra-intro/v1": {
+    "domain/edumath/algebra-intro/v1": {
         "domain_physics_path": "dp/ai.json",
         "ui_overrides": {"subtitle": "Algebra — Introduction"},
     },
@@ -77,6 +80,10 @@ _MODULE_MAP = {
 _SAMPLE_MODULES = [
     {"module_id": k, "domain_physics_path": v["domain_physics_path"], "local_only": False}
     for k, v in _MODULE_MAP.items()
+]
+_MATH_SAMPLE_MODULES = [
+    {"module_id": k, "domain_physics_path": v["domain_physics_path"], "local_only": False}
+    for k, v in _MATH_MODULE_MAP.items()
 ]
 
 
@@ -92,18 +99,25 @@ def _make_ctx() -> MagicMock:
 
     ctx = MagicMock()
     ctx.HTTPException = _FakeHTTPException
-    ctx.domain_registry.list_modules_for_domain.return_value = _SAMPLE_MODULES
-    ctx.domain_registry.get_runtime_context.return_value = {"module_map": _MODULE_MAP}
+    ctx.domain_registry.list_modules_for_domain.side_effect = lambda domain: (
+        _MATH_SAMPLE_MODULES if domain == "education-math" else _SAMPLE_MODULES
+    )
+    ctx.domain_registry.get_runtime_context.side_effect = lambda domain: {
+        "module_map": _MATH_MODULE_MAP if domain == "education-math" else _MODULE_MAP,
+    }
     ctx.domain_registry.resolve_default_for_user.return_value = "education"
+    ctx.domain_registry.resolve_domain_id.side_effect = lambda module_id: (
+        "education-math" if str(module_id).startswith("domain/edumath/") else "education"
+    )
 
     ctx.persistence.get_user = MagicMock(
         return_value={"user_id": "student1", "governed_modules": [
             "domain/edu/general-education/v1",
-            "domain/edu/pre-algebra/v1",
+            "domain/edumath/pre-algebra/v1",
         ]},
     )
     ctx.persistence.load_subject_profile = MagicMock(return_value={
-        "modules": {"domain/edu/pre-algebra/v1": {}, "domain/edu/general-education/v1": {}},
+        "modules": {"domain/edumath/pre-algebra/v1": {}, "domain/edu/general-education/v1": {}},
     })
     ctx.persistence.save_subject_profile = MagicMock()
     ctx.persistence.append_log_record = MagicMock()
@@ -121,7 +135,7 @@ def _student_user(sub: str = "student1") -> dict[str, Any]:
     return {
         "sub": sub,
         "role": "user",
-        "domain_roles": {"domain/edu/pre-algebra/v1": "student"},
+        "domain_roles": {"domain/edumath/pre-algebra/v1": "student"},
     }
 
 
@@ -235,7 +249,7 @@ class TestSwitchModuleUiOverrides:
         )
 
         assert result["status"] == "switched"
-        assert result["module_id"] == "domain/edu/pre-algebra/v1"
+        assert result["module_id"] == "domain/edumath/pre-algebra/v1"
         assert "ui_overrides" in result
         assert result["ui_overrides"]["subtitle"] == "Pre-Algebra"
 
@@ -274,11 +288,11 @@ class TestSwitchModuleUiOverrides:
         ctx = _make_ctx()
         ctx.persistence.get_user = MagicMock(
             return_value={"user_id": "student1", "governed_modules": [
-                "domain/edu/algebra-intro/v1",
+                "domain/edumath/algebra-intro/v1",
             ]},
         )
         ctx.persistence.load_subject_profile = MagicMock(return_value={
-            "modules": {"domain/edu/algebra-intro/v1": {}},
+            "modules": {"domain/edumath/algebra-intro/v1": {}},
         })
         student = _student_user()
 
@@ -316,7 +330,7 @@ class TestSwitchModuleRebuildsDomainContext:
             )
         )
 
-        ctx.rebuild_domain_context.assert_called_once_with("student1", "education")
+        ctx.rebuild_domain_context.assert_called_once_with("student1", "education-math")
 
     def test_rebuild_not_called_when_absent(self) -> None:
         """If ctx has no rebuild_domain_context (older framework),

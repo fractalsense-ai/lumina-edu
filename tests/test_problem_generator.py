@@ -8,10 +8,10 @@ from pathlib import Path
 
 import pytest
 
-# Ensure the education domain-pack reference-implementations are importable.
-_EDU_REF = Path(__file__).resolve().parent.parent / "model-packs" / "education" / "controllers"
-if str(_EDU_REF) not in sys.path:
-    sys.path.insert(0, str(_EDU_REF))
+# Ensure the active education-math reference implementations are importable.
+_MATH_REF = Path(__file__).resolve().parent.parent / "model-packs" / "education-math" / "controllers"
+if str(_MATH_REF) not in sys.path:
+    sys.path.insert(0, str(_MATH_REF))
 
 from problem_generator import generate_problem, select_tier  # noqa: E402
 

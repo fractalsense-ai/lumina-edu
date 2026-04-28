@@ -20,8 +20,9 @@ runtime:
     student: model-packs/education/profiles/student.yaml
     parent: model-packs/education/profiles/parent.yaml
 
-  # Module routing: maps a student profile's domain_id to the correct domain-physics file.
-  # The static domain_physics_path above is the default fallback for sessions without a domain_id.
+  # Module routing: maps a profile's domain_id to the correct domain-physics file.
+  # Math learning modules are owned by education-math; legacy domain/edu/* math
+  # IDs should be migrated through education-foundation/cfg/education-cutover-map.json.
 
   # SLM weight overrides: reclassify prompt types for the education domain.
   # Turn interpretation defaults to LOW (SLM-preferred).  Set to "high" to
@@ -36,14 +37,6 @@ runtime:
   module_map:
     domain/edu/general-education/v1:
       module_path: model-packs/education/modules/general-education
-    domain/edu/pre-algebra/v1:
-      module_path: model-packs/education/modules/pre-algebra
-    domain/edu/algebra-intro/v1:
-      module_path: model-packs/education/modules/algebra-intro
-    domain/edu/algebra-1/v1:
-      module_path: model-packs/education/modules/algebra-1
-    domain/edu/algebra-level-1/v1:
-      module_path: model-packs/education/modules/algebra-level-1
     domain/edu/domain-authority/v1:
       module_path: model-packs/education/modules/domain-authority
     domain/edu/teacher/v1:
@@ -178,21 +171,6 @@ runtime:
     task_presentation: "{guide_npc}: Welcome to {zone}, {protagonist}. A new {obstacle_theme} stands between you and the {macguffin}. Solve {task_id} to proceed."
     default: "{guide_npc}: The {obstacle_theme} awaits in {zone}, {protagonist}. Continue with {task_id} to reach the {macguffin}."
 
-  tool_call_policies:
-    request_verification_retry:
-      -
-        tool_id: algebra_parser
-        payload:
-          call_type: "verify_solution_substitution"
-          equation: "{task_spec.current_problem.equation}"
-          target_variable: "{task_spec.current_problem.target_variable}"
-          expected_answer: "{task_spec.current_problem.expected_answer}"
-    tool_request:
-      -
-        tool_id: calculator
-        payload:
-          expression: "{turn_data.tool_expression}"
-
 # ── Domain Operation Handlers ─────────────────────────────────────────
 # Operations registered here are dispatched by the admin command pipeline
 # before the system elif chain.  Each entry maps an operation name to a
@@ -289,28 +267,6 @@ adapters:
   slm_normalizer:
     module_path: model-packs/education/controllers/slm_normalizer.py
     callable: normalize_slm_command
-  task_initializer:
-    module_path: model-packs/education/controllers/problem_generator.py
-    callable: initialize_task
-  tools:
-    calculator:
-      module_path: model-packs/education/controllers/tool_adapters.py
-      callable: calculator_tool
-    substitution_checker:
-      module_path: model-packs/education/controllers/tool_adapters.py
-      callable: substitution_checker_tool
-    algebra_parser:
-      module_path: model-packs/education/controllers/algebra_tools.py
-      callable: algebra_parser_tool
-    generate_problem:
-      module_path: model-packs/education/controllers/problem_generator.py
-      callable: generate_problem
-    extract_physics_patch:
-      module_path: model-packs/education/controllers/governance_adapters.py
-      callable: extract_physics_patch
-    detect_novel_synthesis:
-      module_path: model-packs/education/controllers/governance_adapters.py
-      callable: detect_novel_synthesis
   api_routes:
     post_vocabulary_metric:
       path: /api/user/{user_id}/vocabulary-metric

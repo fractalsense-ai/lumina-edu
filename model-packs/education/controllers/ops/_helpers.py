@@ -12,6 +12,31 @@ from typing import Any
 
 log = logging.getLogger("lumina.education-ops")
 
+RELATED_LEARNING_DOMAINS: dict[str, tuple[str, ...]] = {
+    "education": ("education-math",),
+}
+
+
+def _resolution_domains(domain: str) -> tuple[str, ...]:
+    return (domain, *RELATED_LEARNING_DOMAINS.get(domain, ()))
+
+
+def _list_modules_for_resolution(ctx: Any, domain: str) -> list[dict[str, Any]]:
+    modules: list[dict[str, Any]] = []
+    seen_ids: set[str] = set()
+    for candidate_domain in _resolution_domains(domain):
+        try:
+            all_mods = ctx.domain_registry.list_modules_for_domain(candidate_domain)
+        except Exception:
+            continue
+        for module in all_mods:
+            module_id = module["module_id"]
+            if module_id in seen_ids:
+                continue
+            seen_ids.add(module_id)
+            modules.append(module)
+    return modules
+
 
 # ── Role / capability guards ─────────────────────────────────
 
@@ -145,7 +170,7 @@ def write_commitment(
 def extract_short_name(module_id: str) -> str:
     """Extract a human-friendly short name from a full module id.
 
-    ``domain/edu/pre-algebra/v1`` → ``pre-algebra``
+    ``domain/edumath/pre-algebra/v1`` → ``pre-algebra``
     """
     parts = module_id.split("/")
     if len(parts) >= 3:
@@ -159,14 +184,18 @@ def list_learning_modules(ctx: Any, domain: str = "education") -> list[dict[str,
     Each dict contains ``module_id``, ``short_name``, and
     ``domain_physics_path``.
     """
-    all_mods = ctx.domain_registry.list_modules_for_domain(domain)
     result: list[dict[str, Any]] = []
-    for m in all_mods:
+    seen_ids: set[str] = set()
+    for m in _list_modules_for_resolution(ctx, domain):
         if m.get("local_only"):
             continue
+        module_id = m["module_id"]
+        if module_id in seen_ids:
+            continue
+        seen_ids.add(module_id)
         result.append({
-            "module_id": m["module_id"],
-            "short_name": extract_short_name(m["module_id"]),
+            "module_id": module_id,
+            "short_name": extract_short_name(module_id),
             "domain_physics_path": m.get("domain_physics_path", ""),
         })
     return result
@@ -179,10 +208,10 @@ def resolve_module_shortname(
 ) -> str:
     """Resolve a short name like ``pre-algebra`` to a full module id.
 
-    Accepts full paths as pass-through (``domain/edu/pre-algebra/v1``
+    Accepts full paths as pass-through (``domain/edumath/pre-algebra/v1``
     is returned unchanged).  Raises 422 for unknown short names.
     """
-    all_mods = ctx.domain_registry.list_modules_for_domain(domain)
+    all_mods = _list_modules_for_resolution(ctx, domain=domain)
     valid_ids = {m["module_id"] for m in all_mods}
 
     # Pass-through: already a full module id

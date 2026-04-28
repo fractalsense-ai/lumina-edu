@@ -152,10 +152,18 @@ async def switch_active_module(
 
     # Resolve short names in the correct domain
     # (e.g. "persona-craft" → "domain/asst/persona-craft/v1",
-    #        "pre-algebra"   → "domain/edu/pre-algebra/v1")
+    #        "pre-algebra"   → "domain/edumath/pre-algebra/v1")
     module_id = resolve_module_shortname(ctx, module_id, domain=_user_domain)
 
-    _profile = await load_profile(ctx, user_id, domain=_user_domain)
+    _module_domain = _user_domain
+    try:
+        _resolved_module_domain = ctx.domain_registry.resolve_domain_id(module_id)
+        if _resolved_module_domain:
+            _module_domain = _resolved_module_domain
+    except Exception:
+        pass
+
+    _profile = await load_profile(ctx, user_id, domain=_module_domain)
 
     # Collect modules the user has state in
     _mods = _profile.get("modules")
@@ -174,7 +182,7 @@ async def switch_active_module(
 
     # Validate that the module actually exists in the domain registry
     try:
-        _mods = ctx.domain_registry.list_modules_for_domain(_user_domain)
+        _mods = list_learning_modules(ctx, _module_domain)
         _valid_ids = {m["module_id"] for m in _mods}
         if module_id not in _valid_ids:
             raise ctx.HTTPException(
@@ -188,13 +196,13 @@ async def switch_active_module(
 
     # Update active module
     _profile["domain_id"] = module_id
-    await save_profile(ctx, user_id, _profile, domain=_user_domain)
+    await save_profile(ctx, user_id, _profile, domain=_module_domain)
 
     # Rebuild the cached session context so the next chat message uses
     # the new module's physics instead of the stale cached context.
     if getattr(ctx, "rebuild_domain_context", None) is not None:
         try:
-            ctx.rebuild_domain_context(user_id, _user_domain)
+            ctx.rebuild_domain_context(user_id, _module_domain)
         except Exception:
             log.debug("Could not rebuild session context for %s", user_id)
 
@@ -203,7 +211,7 @@ async def switch_active_module(
     # Include ui_overrides so the frontend can update the header/subtitle
     _ui_overrides: dict[str, Any] = {}
     try:
-        _rt = ctx.domain_registry.get_runtime_context(_user_domain)
+        _rt = ctx.domain_registry.get_runtime_context(_module_domain)
         _mod_entry = (_rt.get("module_map") or {}).get(module_id) or {}
         _ui_overrides = _mod_entry.get("ui_overrides") or {}
     except Exception:

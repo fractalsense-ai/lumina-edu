@@ -74,12 +74,15 @@ _edu_fallback = _gov_mod._deterministic_command_fallback
 
 # ── Test data ─────────────────────────────────────────────────
 
-_SAMPLE_MODULES = [
+_EDU_SAMPLE_MODULES = [
     {"module_id": "domain/edu/general-education/v1", "domain_physics_path": "dp/ge.json", "local_only": False},
-    {"module_id": "domain/edu/pre-algebra/v1", "domain_physics_path": "dp/pa.json", "local_only": False},
-    {"module_id": "domain/edu/algebra-intro/v1", "domain_physics_path": "dp/ai.json", "local_only": False},
     {"module_id": "domain/edu/teacher/v1", "domain_physics_path": "dp/t.json", "local_only": True},
     {"module_id": "domain/edu/domain-authority/v1", "domain_physics_path": "dp/da.json", "local_only": True},
+]
+
+_MATH_SAMPLE_MODULES = [
+    {"module_id": "domain/edumath/pre-algebra/v1", "domain_physics_path": "dp/pa.json", "local_only": False},
+    {"module_id": "domain/edumath/algebra-intro/v1", "domain_physics_path": "dp/ai.json", "local_only": False},
 ]
 
 
@@ -98,7 +101,24 @@ def _make_ctx(
     """Build a minimal mock ctx for handler tests."""
     ctx = MagicMock()
     ctx.HTTPException = _FakeHTTPException
-    ctx.domain_registry.list_modules_for_domain.return_value = modules or _SAMPLE_MODULES
+    def _list_modules(domain: str) -> list[dict]:
+        if modules is not None:
+            return modules
+        if domain == "education-math":
+            return _MATH_SAMPLE_MODULES
+        return _EDU_SAMPLE_MODULES
+
+    ctx.domain_registry.list_modules_for_domain.side_effect = _list_modules
+    ctx.domain_registry.resolve_default_for_user.return_value = "education"
+    ctx.domain_registry.resolve_domain_id.side_effect = lambda module_id: (
+        "education-math" if str(module_id).startswith("domain/edumath/") else "education"
+    )
+    ctx.domain_registry.get_runtime_context.side_effect = lambda domain: {
+        "module_map": {
+            m["module_id"]: {"ui_overrides": {}, "domain_physics_path": m["domain_physics_path"]}
+            for m in (_MATH_SAMPLE_MODULES if domain == "education-math" else _EDU_SAMPLE_MODULES)
+        },
+    }
 
     def _get_user(uid: str) -> dict | None:
         if user_lookup:
@@ -144,7 +164,7 @@ def _student_user(sub: str = "student1") -> dict[str, Any]:
     return {
         "sub": sub,
         "role": "user",
-        "domain_roles": {"domain/edu/pre-algebra/v1": "student"},
+        "domain_roles": {"domain/edumath/pre-algebra/v1": "student"},
     }
 
 
@@ -156,7 +176,7 @@ def _student_user(sub: str = "student1") -> dict[str, Any]:
 class TestExtractShortName:
 
     def test_standard_module_id(self) -> None:
-        assert extract_short_name("domain/edu/pre-algebra/v1") == "pre-algebra"
+        assert extract_short_name("domain/edumath/pre-algebra/v1") == "pre-algebra"
 
     def test_general_education(self) -> None:
         assert extract_short_name("domain/edu/general-education/v1") == "general-education"
@@ -176,11 +196,11 @@ class TestResolveModuleShortname:
 
     def test_short_name_resolved(self) -> None:
         ctx = _make_ctx()
-        assert resolve_module_shortname(ctx, "pre-algebra") == "domain/edu/pre-algebra/v1"
+        assert resolve_module_shortname(ctx, "pre-algebra") == "domain/edumath/pre-algebra/v1"
 
     def test_full_path_passthrough(self) -> None:
         ctx = _make_ctx()
-        assert resolve_module_shortname(ctx, "domain/edu/pre-algebra/v1") == "domain/edu/pre-algebra/v1"
+        assert resolve_module_shortname(ctx, "domain/edumath/pre-algebra/v1") == "domain/edumath/pre-algebra/v1"
 
     def test_unknown_name_raises_422(self) -> None:
         ctx = _make_ctx()
@@ -201,7 +221,7 @@ class TestListLearningModules:
         ctx = _make_ctx()
         result = list_learning_modules(ctx)
         ids = [m["module_id"] for m in result]
-        assert "domain/edu/pre-algebra/v1" in ids
+        assert "domain/edumath/pre-algebra/v1" in ids
         assert "domain/edu/teacher/v1" not in ids
         assert "domain/edu/domain-authority/v1" not in ids
 
@@ -238,7 +258,7 @@ class TestAssignModulesHandler:
         assert result["status"] == "assigned"
         assert result["count"] == 1
         assert result["assignments"][0]["user_id"] == "student1"
-        assert "domain/edu/pre-algebra/v1" in result["assignments"][0]["module_ids"]
+        assert "domain/edumath/pre-algebra/v1" in result["assignments"][0]["module_ids"]
 
     def test_multi_module_single_student(self) -> None:
         ctx = _make_ctx()
@@ -252,8 +272,8 @@ class TestAssignModulesHandler:
         )
         assert result["count"] == 1
         mods = result["assignments"][0]["module_ids"]
-        assert "domain/edu/pre-algebra/v1" in mods
-        assert "domain/edu/algebra-intro/v1" in mods
+        assert "domain/edumath/pre-algebra/v1" in mods
+        assert "domain/edumath/algebra-intro/v1" in mods
 
     def test_classroom_target(self) -> None:
         ctx = _make_ctx(
@@ -345,12 +365,12 @@ class TestAssignModulesHandler:
         result = asyncio.run(
             assign_modules_handler(
                 "assign_modules",
-                {"module_ids": "domain/edu/pre-algebra/v1", "target": "student1"},
+                {"module_ids": "domain/edumath/pre-algebra/v1", "target": "student1"},
                 teacher, ctx,
             )
         )
         assert result["status"] == "assigned"
-        assert "domain/edu/pre-algebra/v1" in result["assignments"][0]["module_ids"]
+        assert "domain/edumath/pre-algebra/v1" in result["assignments"][0]["module_ids"]
 
 
 # ═════════════════════════════════════════════════════════════
@@ -410,10 +430,10 @@ class TestSwitchModuleShortName:
         student = _student_user()
         # Set up profile with governed modules using full path
         ctx.persistence.get_user = MagicMock(
-            return_value={"user_id": "student1", "governed_modules": ["domain/edu/pre-algebra/v1"]},
+            return_value={"user_id": "student1", "governed_modules": ["domain/edumath/pre-algebra/v1"]},
         )
         ctx.persistence.load_subject_profile = MagicMock(return_value={
-            "modules": {"domain/edu/pre-algebra/v1": {}},
+            "modules": {"domain/edumath/pre-algebra/v1": {}},
         })
         result = asyncio.run(
             switch_active_module_handler(
@@ -423,26 +443,26 @@ class TestSwitchModuleShortName:
             )
         )
         assert result["status"] == "switched"
-        assert result["module_id"] == "domain/edu/pre-algebra/v1"
+        assert result["module_id"] == "domain/edumath/pre-algebra/v1"
 
     def test_switch_with_full_path(self) -> None:
         ctx = _make_ctx()
         student = _student_user()
         ctx.persistence.get_user = MagicMock(
-            return_value={"user_id": "student1", "governed_modules": ["domain/edu/pre-algebra/v1"]},
+            return_value={"user_id": "student1", "governed_modules": ["domain/edumath/pre-algebra/v1"]},
         )
         ctx.persistence.load_subject_profile = MagicMock(return_value={
-            "modules": {"domain/edu/pre-algebra/v1": {}},
+            "modules": {"domain/edumath/pre-algebra/v1": {}},
         })
         result = asyncio.run(
             switch_active_module_handler(
                 "switch_active_module",
-                {"module_id": "domain/edu/pre-algebra/v1"},
+                {"module_id": "domain/edumath/pre-algebra/v1"},
                 student, ctx,
             )
         )
         assert result["status"] == "switched"
-        assert result["module_id"] == "domain/edu/pre-algebra/v1"
+        assert result["module_id"] == "domain/edumath/pre-algebra/v1"
 
 
 # ═════════════════════════════════════════════════════════════

@@ -32,11 +32,11 @@ def _load_student_yaml() -> dict[str, Any]:
     return load_yaml(path)
 
 
-def _load_runtime_config() -> dict[str, Any]:
+def _load_runtime_config(pack_id: str = "education") -> dict[str, Any]:
     from lumina.core.yaml_loader import load_yaml
     from conftest import merge_module_config_sidecars
 
-    path = _REPO_ROOT / "model-packs" / "education" / "cfg" / "runtime-config.yaml"
+    path = _REPO_ROOT / "model-packs" / pack_id / "cfg" / "runtime-config.yaml"
     cfg = load_yaml(path)
     module_map = cfg.get("runtime", {}).get("module_map", {})
     merge_module_config_sidecars(module_map)
@@ -162,10 +162,10 @@ class TestRuntimeConfigInitialModuleState:
     runtime-config and governance modules do not."""
 
     _LEARNING_MODULES = [
-        "domain/edu/pre-algebra/v1",
-        "domain/edu/algebra-intro/v1",
-        "domain/edu/algebra-1/v1",
-        "domain/edu/algebra-level-1/v1",
+        "domain/edumath/pre-algebra/v1",
+        "domain/edumath/algebra-intro/v1",
+        "domain/edumath/algebra-1/v1",
+        "domain/edumath/algebra-level-1/v1",
     ]
 
     _GOVERNANCE_MODULES = [
@@ -175,7 +175,7 @@ class TestRuntimeConfigInitialModuleState:
     ]
 
     def test_learning_modules_have_initial_module_state(self) -> None:
-        cfg = _load_runtime_config()
+        cfg = _load_runtime_config("education-math")
         module_map = cfg["runtime"]["module_map"]
         for mod_id in self._LEARNING_MODULES:
             entry = module_map[mod_id]
@@ -207,7 +207,7 @@ class TestRuntimeConfigInitialModuleState:
         mastery_dimensions for each learning module."""
         import json
 
-        cfg = _load_runtime_config()
+        cfg = _load_runtime_config("education-math")
         module_map = cfg["runtime"]["module_map"]
         for mod_id in self._LEARNING_MODULES:
             entry = module_map[mod_id]

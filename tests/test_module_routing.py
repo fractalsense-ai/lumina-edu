@@ -1,11 +1,8 @@
-"""Tests for module-map routing and the education module-level evidence schemas.
+"""Tests for active education/education-math module routing.
 
-Covers:
-  1. runtime-config.yaml has a module_map section with exactly 4 entries
-  2. Each module_map entry's domain_physics_path resolves to a valid, loadable JSON file
-  3. All three new evidence-schema.json files exist and are valid JSON with correct schema_id/domain_id
-  4. Module-selection logic: given a student profile declaring domain_id X, the
-     correct domain_physics_path is returned (overrides the static default)
+The legacy education pack keeps general/admin/guardian modules active. Math
+learning modules are owned by the education-math pack; old domain/edu/* math
+IDs are migration inputs only.
 """
 from __future__ import annotations
 
@@ -17,17 +14,10 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EDU_CFG = REPO_ROOT / "model-packs" / "education" / "cfg" / "runtime-config.yaml"
-EDU_MODULES = REPO_ROOT / "model-packs" / "education" / "modules"
+MATH_CFG = REPO_ROOT / "model-packs" / "education-math" / "cfg" / "runtime-config.yaml"
+MATH_MODULES = REPO_ROOT / "model-packs" / "education-math" / "modules"
 
-_EXPECTED_MODULE_IDS = [
-    "domain/edu/pre-algebra/v1",
-    "domain/edu/algebra-intro/v1",
-    "domain/edu/algebra-1/v1",
-]
-
-# All module_map entries (includes the legacy module and default staging module)
-_ALL_MODULE_MAP_IDS = _EXPECTED_MODULE_IDS + [
-    "domain/edu/algebra-level-1/v1",
+LEGACY_EDU_ACTIVE_MODULE_IDS = [
     "domain/edu/general-education/v1",
     "domain/edu/domain-authority/v1",
     "domain/edu/teacher/v1",
@@ -35,36 +25,41 @@ _ALL_MODULE_MAP_IDS = _EXPECTED_MODULE_IDS + [
     "domain/edu/guardian/v1",
 ]
 
-_EXPECTED_SCHEMA_IDS = {
-    "domain/edu/pre-algebra/v1":    "lumina:evidence:education:pre-algebra:v1",
-    "domain/edu/algebra-intro/v1":  "lumina:evidence:education:algebra-intro:v1",
-    "domain/edu/algebra-1/v1":      "lumina:evidence:education:algebra-1:v1",
+MATH_MODULE_IDS = [
+    "domain/edumath/pre-algebra/v1",
+    "domain/edumath/algebra-intro/v1",
+    "domain/edumath/algebra-1/v1",
+    "domain/edumath/algebra-level-1/v1",
+]
+
+LEGACY_MATH_IDS = [
+    "domain/edu/pre-algebra/v1",
+    "domain/edu/algebra-intro/v1",
+    "domain/edu/algebra-1/v1",
+    "domain/edu/algebra-level-1/v1",
+]
+
+EXPECTED_SCHEMA_IDS = {
+    "domain/edumath/pre-algebra/v1": "lumina:evidence:education-math:pre-algebra:v1",
+    "domain/edumath/algebra-intro/v1": "lumina:evidence:education-math:algebra-intro:v1",
+    "domain/edumath/algebra-1/v1": "lumina:evidence:education-math:algebra-1:v1",
 }
 
-_MODULE_DIR_MAP = {
-    "domain/edu/pre-algebra/v1":    "pre-algebra",
-    "domain/edu/algebra-intro/v1":  "algebra-intro",
-    "domain/edu/algebra-1/v1":      "algebra-1",
+MODULE_DIR_MAP = {
+    "domain/edumath/pre-algebra/v1": "pre-algebra",
+    "domain/edumath/algebra-intro/v1": "algebra-intro",
+    "domain/edumath/algebra-1/v1": "algebra-1",
 }
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-@pytest.fixture(scope="module")
-def runtime_cfg() -> dict:
-    with open(EDU_CFG, encoding="utf-8") as f:
+def _load_runtime(path: Path) -> dict:
+    with open(path, encoding="utf-8") as f:
         cfg = yaml.safe_load(f)
     return cfg["runtime"]
 
 
-@pytest.fixture(scope="module")
-def module_map(runtime_cfg) -> dict:
-    raw = runtime_cfg.get("module_map", {})
-    # Replicate the runtime-loader sidecar merge so tests see the full
-    # module config even when entries use module_path stubs.
-    for _mod_id, _mod_cfg in raw.items():
+def _merge_sidecars(module_map: dict) -> dict:
+    for _mod_cfg in module_map.values():
         _mod_dir = _mod_cfg.get("module_path")
         if _mod_dir:
             _mc_path = REPO_ROOT / _mod_dir / "module-config.yaml"
@@ -72,164 +67,138 @@ def module_map(runtime_cfg) -> dict:
                 with open(_mc_path, encoding="utf-8") as f:
                     _mc = yaml.safe_load(f)
                 if isinstance(_mc, dict):
-                    for _k, _v in _mc.items():
-                        if _k not in _mod_cfg:
-                            _mod_cfg[_k] = _v
-    return raw
+                    for _key, _value in _mc.items():
+                        if _key not in _mod_cfg:
+                            _mod_cfg[_key] = _value
+    return module_map
 
 
-# ---------------------------------------------------------------------------
-# Module-map structure
-# ---------------------------------------------------------------------------
+@pytest.fixture(scope="module")
+def edu_runtime_cfg() -> dict:
+    return _load_runtime(EDU_CFG)
 
-class TestModuleMapStructure:
-    def test_module_map_key_exists(self, runtime_cfg):
-        assert "module_map" in runtime_cfg, (
-            "runtime-config.yaml missing 'module_map' under runtime:"
-        )
 
-    def test_module_map_has_five_entries(self, module_map):
-        assert len(module_map) == 9, (
-            f"Expected 9 module_map entries, got {len(module_map)}: {list(module_map.keys())}"
-        )
+@pytest.fixture(scope="module")
+def edu_module_map(edu_runtime_cfg) -> dict:
+    return _merge_sidecars(edu_runtime_cfg.get("module_map", {}))
 
-    @pytest.mark.parametrize("domain_id", _ALL_MODULE_MAP_IDS)
-    def test_expected_domain_ids_present(self, module_map, domain_id):
-        assert domain_id in module_map, f"module_map missing entry for {domain_id!r}"
 
-    @pytest.mark.parametrize("domain_id", _ALL_MODULE_MAP_IDS)
-    def test_each_entry_has_domain_physics_path(self, module_map, domain_id):
-        entry = module_map[domain_id]
-        assert "domain_physics_path" in entry, (
-            f"module_map[{domain_id!r}] missing 'domain_physics_path'"
-        )
-        assert isinstance(entry["domain_physics_path"], str)
+@pytest.fixture(scope="module")
+def math_runtime_cfg() -> dict:
+    return _load_runtime(MATH_CFG)
+
+
+@pytest.fixture(scope="module")
+def math_module_map(math_runtime_cfg) -> dict:
+    return _merge_sidecars(math_runtime_cfg.get("module_map", {}))
+
+
+class TestLegacyEducationModuleMapStructure:
+    def test_module_map_key_exists(self, edu_runtime_cfg):
+        assert "module_map" in edu_runtime_cfg
+
+    def test_legacy_education_has_only_non_math_entries(self, edu_module_map):
+        assert set(edu_module_map) == set(LEGACY_EDU_ACTIVE_MODULE_IDS)
+        for legacy_math_id in LEGACY_MATH_IDS:
+            assert legacy_math_id not in edu_module_map
+
+    @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
+    def test_expected_legacy_domain_ids_present(self, edu_module_map, domain_id):
+        assert domain_id in edu_module_map
+
+    @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
+    def test_legacy_entries_have_domain_physics_paths(self, edu_module_map, domain_id):
+        entry = edu_module_map[domain_id]
+        assert isinstance(entry.get("domain_physics_path"), str)
         assert entry["domain_physics_path"].strip()
 
 
-# ---------------------------------------------------------------------------
-# Domain-physics files referenced by module_map exist and parse
-# ---------------------------------------------------------------------------
+class TestEducationMathModuleMapStructure:
+    def test_math_module_map_has_four_entries(self, math_module_map):
+        assert set(math_module_map) == set(MATH_MODULE_IDS)
+
+    @pytest.mark.parametrize("domain_id", MATH_MODULE_IDS)
+    def test_math_entry_has_domain_physics_path(self, math_module_map, domain_id):
+        entry = math_module_map[domain_id]
+        assert isinstance(entry.get("domain_physics_path"), str)
+        assert entry["domain_physics_path"].strip()
+
 
 class TestModuleMapPhysicsPaths:
-    @pytest.mark.parametrize("domain_id", _ALL_MODULE_MAP_IDS)
-    def test_domain_physics_path_file_exists(self, module_map, domain_id):
-        path_str = module_map[domain_id]["domain_physics_path"]
-        path = REPO_ROOT / path_str
-        assert path.exists(), f"{path_str} does not exist (referenced by module_map[{domain_id!r}])"
+    @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
+    def test_legacy_domain_physics_path_file_exists(self, edu_module_map, domain_id):
+        path_str = edu_module_map[domain_id]["domain_physics_path"]
+        assert (REPO_ROOT / path_str).exists()
 
-    @pytest.mark.parametrize("domain_id", _ALL_MODULE_MAP_IDS)
-    def test_domain_physics_json_is_valid(self, module_map, domain_id):
-        path_str = module_map[domain_id]["domain_physics_path"]
-        path = REPO_ROOT / path_str
-        with open(path, encoding="utf-8") as f:
-            data = json.load(f)
-        assert isinstance(data, dict), f"{path_str} did not load as a JSON object"
-        # Domain-physics files use 'id' (not 'domain_id') as the domain identifier
-        assert "id" in data or "domain_id" in data, (
-            f"{path_str} missing 'id' or 'domain_id' key"
-        )
+    @pytest.mark.parametrize("domain_id", MATH_MODULE_IDS)
+    def test_math_domain_physics_path_file_exists(self, math_module_map, domain_id):
+        path_str = math_module_map[domain_id]["domain_physics_path"]
+        assert (REPO_ROOT / path_str).exists()
 
-
-# ---------------------------------------------------------------------------
-# Evidence schema files
-# ---------------------------------------------------------------------------
-
-class TestEvidenceSchemaFiles:
-    @pytest.mark.parametrize("domain_id", _EXPECTED_MODULE_IDS)
-    def test_evidence_schema_file_exists(self, domain_id):
-        module_dir = _MODULE_DIR_MAP[domain_id]
-        schema_path = EDU_MODULES / module_dir / "evidence-schema.json"
-        assert schema_path.exists(), (
-            f"evidence-schema.json missing in modules/{module_dir}/"
-        )
-
-    @pytest.mark.parametrize("domain_id", _EXPECTED_MODULE_IDS)
-    def test_evidence_schema_is_valid_json(self, domain_id):
-        module_dir = _MODULE_DIR_MAP[domain_id]
-        schema_path = EDU_MODULES / module_dir / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
+    @pytest.mark.parametrize("domain_id", MATH_MODULE_IDS)
+    def test_math_domain_physics_json_is_valid(self, math_module_map, domain_id):
+        path_str = math_module_map[domain_id]["domain_physics_path"]
+        data = json.loads((REPO_ROOT / path_str).read_text(encoding="utf-8"))
         assert isinstance(data, dict)
+        assert data.get("id") == domain_id or data.get("domain_id") == domain_id
 
-    @pytest.mark.parametrize("domain_id", _EXPECTED_MODULE_IDS)
+
+class TestMathEvidenceSchemaFiles:
+    @pytest.mark.parametrize("domain_id", EXPECTED_SCHEMA_IDS)
+    def test_evidence_schema_file_exists(self, domain_id):
+        module_dir = MODULE_DIR_MAP[domain_id]
+        assert (MATH_MODULES / module_dir / "evidence-schema.json").exists()
+
+    @pytest.mark.parametrize("domain_id", EXPECTED_SCHEMA_IDS)
     def test_evidence_schema_has_correct_schema_id(self, domain_id):
-        module_dir = _MODULE_DIR_MAP[domain_id]
-        schema_path = EDU_MODULES / module_dir / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
-        assert data.get("schema_id") == _EXPECTED_SCHEMA_IDS[domain_id], (
-            f"schema_id mismatch in {module_dir}/evidence-schema.json: "
-            f"got {data.get('schema_id')!r}, expected {_EXPECTED_SCHEMA_IDS[domain_id]!r}"
-        )
+        module_dir = MODULE_DIR_MAP[domain_id]
+        data = json.loads((MATH_MODULES / module_dir / "evidence-schema.json").read_text(encoding="utf-8"))
+        assert data.get("schema_id") == EXPECTED_SCHEMA_IDS[domain_id]
 
-    @pytest.mark.parametrize("domain_id", _EXPECTED_MODULE_IDS)
+    @pytest.mark.parametrize("domain_id", EXPECTED_SCHEMA_IDS)
     def test_evidence_schema_has_correct_domain_id(self, domain_id):
-        module_dir = _MODULE_DIR_MAP[domain_id]
-        schema_path = EDU_MODULES / module_dir / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
+        module_dir = MODULE_DIR_MAP[domain_id]
+        data = json.loads((MATH_MODULES / module_dir / "evidence-schema.json").read_text(encoding="utf-8"))
         assert data.get("domain_id") == domain_id
 
-    @pytest.mark.parametrize("domain_id", _EXPECTED_MODULE_IDS)
+    @pytest.mark.parametrize("domain_id", EXPECTED_SCHEMA_IDS)
     def test_evidence_schema_has_fields(self, domain_id):
-        module_dir = _MODULE_DIR_MAP[domain_id]
-        schema_path = EDU_MODULES / module_dir / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
-        fields = data.get("fields", {})
-        assert len(fields) >= 10, (
-            f"{module_dir}/evidence-schema.json has only {len(fields)} fields; expected ≥10"
-        )
+        module_dir = MODULE_DIR_MAP[domain_id]
+        data = json.loads((MATH_MODULES / module_dir / "evidence-schema.json").read_text(encoding="utf-8"))
+        assert len(data.get("fields", {})) >= 10
 
     def test_pre_algebra_has_law2_fields(self):
-        schema_path = EDU_MODULES / "pre-algebra" / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads((MATH_MODULES / "pre-algebra" / "evidence-schema.json").read_text(encoding="utf-8"))
         fields = data["fields"]
         assert "reversibility_order_correct" in fields
         assert "inequality_direction_correct" in fields
 
     def test_algebra_intro_has_law3_and_law5_fields(self):
-        schema_path = EDU_MODULES / "algebra-intro" / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads((MATH_MODULES / "algebra-intro" / "evidence-schema.json").read_text(encoding="utf-8"))
         fields = data["fields"]
         assert "substitution_valid" in fields
         assert "relationship_correctly_mapped" in fields
-        # Also inherits Law 2 fields
         assert "reversibility_order_correct" in fields
 
     def test_algebra_1_has_all_six_law_fields(self):
-        schema_path = EDU_MODULES / "algebra-1" / "evidence-schema.json"
-        with open(schema_path, encoding="utf-8") as f:
-            data = json.load(f)
+        data = json.loads((MATH_MODULES / "algebra-1" / "evidence-schema.json").read_text(encoding="utf-8"))
         fields = data["fields"]
         for expected_field in [
-            "equivalence_preserved",          # Law 1
-            "reversibility_order_correct",     # Law 2
-            "inequality_direction_correct",    # Law 2B
-            "substitution_valid",              # Law 3
-            "structure_preserved",             # Law 4
-            "relationship_correctly_mapped",   # Law 5
-            "model_accurately_transcribed",    # Law 6
+            "equivalence_preserved",
+            "reversibility_order_correct",
+            "inequality_direction_correct",
+            "substitution_valid",
+            "structure_preserved",
+            "relationship_correctly_mapped",
+            "model_accurately_transcribed",
         ]:
-            assert expected_field in fields, (
-                f"algebra-1/evidence-schema.json missing field: {expected_field!r}"
-            )
+            assert expected_field in fields
 
-
-# ---------------------------------------------------------------------------
-# Module routing logic
-# ---------------------------------------------------------------------------
 
 class TestModuleRoutingLogic:
-    """Verify the module-selection logic: module_map lookup overrides static default."""
+    """Verify module_map lookup overrides the static default."""
 
-    def _resolve_domain_physics_path(
-        self, runtime: dict, profile: dict
-    ) -> str:
-        """Replicate the routing logic from _build_domain_context in server.py."""
+    def _resolve_domain_physics_path(self, runtime: dict, profile: dict) -> str:
         default_path = runtime["domain_physics_path"]
         module_map = runtime.get("module_map") or {}
         domain_id = profile.get("domain_id") or profile.get("subject_domain_id")
@@ -237,37 +206,28 @@ class TestModuleRoutingLogic:
             return module_map[domain_id]["domain_physics_path"]
         return default_path
 
-    def test_no_domain_id_uses_static_default(self, runtime_cfg):
-        profile = {}
-        result = self._resolve_domain_physics_path(runtime_cfg, profile)
-        assert result == runtime_cfg["domain_physics_path"]
+    def test_legacy_no_domain_id_uses_static_default(self, edu_runtime_cfg):
+        result = self._resolve_domain_physics_path(edu_runtime_cfg, {})
+        assert result == edu_runtime_cfg["domain_physics_path"]
 
-    def test_unknown_domain_id_uses_static_default(self, runtime_cfg):
-        profile = {"domain_id": "domain/edu/unknown/v1"}
-        result = self._resolve_domain_physics_path(runtime_cfg, profile)
-        assert result == runtime_cfg["domain_physics_path"]
-
-    @pytest.mark.parametrize("domain_id", _ALL_MODULE_MAP_IDS)
-    def test_known_domain_id_routes_to_module_path(self, runtime_cfg, module_map, domain_id):
-        profile = {"domain_id": domain_id}
-        result = self._resolve_domain_physics_path(runtime_cfg, profile)
-        expected = module_map[domain_id]["domain_physics_path"]
-        assert result == expected, (
-            f"Routing failed for {domain_id!r}: got {result!r}, expected {expected!r}"
-        )
-
-    def test_algebra_1_routes_to_algebra_1_physics(self, runtime_cfg):
-        profile = {"domain_id": "domain/edu/algebra-1/v1"}
-        result = self._resolve_domain_physics_path(runtime_cfg, profile)
-        assert "algebra-1" in result
-
-    def test_pre_algebra_routes_to_pre_algebra_physics(self, runtime_cfg):
+    def test_legacy_math_id_uses_static_default_until_cutover(self, edu_runtime_cfg):
         profile = {"domain_id": "domain/edu/pre-algebra/v1"}
-        result = self._resolve_domain_physics_path(runtime_cfg, profile)
-        assert "pre-algebra" in result
+        result = self._resolve_domain_physics_path(edu_runtime_cfg, profile)
+        assert result == edu_runtime_cfg["domain_physics_path"]
 
-    def test_subject_domain_id_fallback_key(self, runtime_cfg):
-        # Support alternative key name used in some profile templates
-        profile = {"subject_domain_id": "domain/edu/algebra-intro/v1"}
-        result = self._resolve_domain_physics_path(runtime_cfg, profile)
+    @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
+    def test_known_legacy_domain_id_routes_to_module_path(self, edu_runtime_cfg, edu_module_map, domain_id):
+        profile = {"domain_id": domain_id}
+        result = self._resolve_domain_physics_path(edu_runtime_cfg, profile)
+        assert result == edu_module_map[domain_id]["domain_physics_path"]
+
+    @pytest.mark.parametrize("domain_id", MATH_MODULE_IDS)
+    def test_known_math_domain_id_routes_to_math_module_path(self, math_runtime_cfg, math_module_map, domain_id):
+        profile = {"domain_id": domain_id}
+        result = self._resolve_domain_physics_path(math_runtime_cfg, profile)
+        assert result == math_module_map[domain_id]["domain_physics_path"]
+
+    def test_math_subject_domain_id_fallback_key(self, math_runtime_cfg):
+        profile = {"subject_domain_id": "domain/edumath/algebra-intro/v1"}
+        result = self._resolve_domain_physics_path(math_runtime_cfg, profile)
         assert "algebra-intro" in result

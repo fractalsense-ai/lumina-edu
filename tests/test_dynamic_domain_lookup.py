@@ -606,7 +606,7 @@ def test_governed_modules_stripped_for_non_da() -> None:
         "params": {
             "username": "TestUser",
             "role": "user",
-            "governed_modules": ["domain/edu/algebra-level-1/v1"],
+            "governed_modules": ["domain/edumath/algebra-level-1/v1"],
         },
     }
     result = _normalize_slm_command(cmd)
@@ -623,11 +623,11 @@ def test_governed_modules_kept_for_da() -> None:
         "params": {
             "username": "DAUser",
             "role": "admin",
-            "governed_modules": ["domain/edu/algebra-level-1/v1"],
+            "governed_modules": ["domain/edumath/algebra-level-1/v1"],
         },
     }
     result = _normalize_slm_command(cmd)
-    assert result["params"].get("governed_modules") == ["domain/edu/algebra-level-1/v1"]
+    assert result["params"].get("governed_modules") == ["domain/edumath/algebra-level-1/v1"]
 
 
 @pytest.mark.unit
@@ -682,8 +682,8 @@ def test_request_module_assignment_handler(registry: DomainRegistry) -> None:
         "operation": "request_module_assignment",
         "target": "education",
         "params": {
-            "domain_id": "education",
-            "module_id": "domain/edu/algebra-level-1/v1",
+            "domain_id": "education-math",
+            "module_id": "domain/edumath/algebra-level-1/v1",
             "reason": "Want to start algebra",
         },
     }
@@ -700,8 +700,8 @@ def test_request_module_assignment_handler(registry: DomainRegistry) -> None:
 
     assert result["operation"] == "request_module_assignment"
     assert result["status"] == "pending_approval"
-    assert result["domain_id"] == "education"
-    assert result["module_id"] == "domain/edu/algebra-level-1/v1"
+    assert result["domain_id"] == "education-math"
+    assert result["module_id"] == "domain/edumath/algebra-level-1/v1"
     assert "escalation_id" in result
     # Escalation record + TraceEvent = 2 log writes
     assert mock_persistence.append_log_record.call_count == 2
@@ -1119,7 +1119,7 @@ def test_invite_pre_assigns_domain_role() -> None:
             "username": "StudentX",
             "role": "user",
             "intended_domain_role": "student",
-            "governed_modules": ["domain/edu/algebra-level-1/v1"],
+            "governed_modules": ["domain/edumath/algebra-level-1/v1"],
         },
     }
 
@@ -1135,4 +1135,4 @@ def test_invite_pre_assigns_domain_role() -> None:
     mock_persistence.update_user_domain_roles.assert_called_once()
     call_args = mock_persistence.update_user_domain_roles.call_args
     domain_roles_map = call_args[0][1]
-    assert domain_roles_map == {"domain/edu/algebra-level-1/v1": "student"}
+    assert domain_roles_map == {"domain/edumath/algebra-level-1/v1": "student"}
