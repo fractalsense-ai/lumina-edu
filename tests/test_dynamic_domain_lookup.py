@@ -21,6 +21,12 @@ import pytest
 from lumina.core.domain_registry import DomainNotFoundError, DomainRegistry
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
+_AGRICULTURE_PACK = _REPO_ROOT / "model-packs" / "agriculture"
+
+
+def _skip_without_agriculture() -> None:
+    if not _AGRICULTURE_PACK.is_dir():
+        pytest.skip("Agriculture domain pack not present in this workspace")
 
 
 # ── Fixtures ────────────────────────────────────────────────────
@@ -47,6 +53,7 @@ def test_resolve_exact_education(registry: DomainRegistry) -> None:
 
 @pytest.mark.unit
 def test_resolve_exact_agriculture(registry: DomainRegistry) -> None:
+    _skip_without_agriculture()
     assert registry.resolve_domain_id("agriculture") == "agriculture"
 
 
@@ -66,6 +73,7 @@ def test_resolve_prefix_edu(registry: DomainRegistry) -> None:
 
 @pytest.mark.unit
 def test_resolve_prefix_agri(registry: DomainRegistry) -> None:
+    _skip_without_agriculture()
     assert registry.resolve_domain_id("agri") == "agriculture"
 
 
@@ -91,6 +99,7 @@ def test_resolve_path_domain_edu_with_module(registry: DomainRegistry) -> None:
 
 @pytest.mark.unit
 def test_resolve_path_domain_agri_with_module(registry: DomainRegistry) -> None:
+    _skip_without_agriculture()
     assert registry.resolve_domain_id("domain/agri/operations-level-1/v1") == "agriculture"
 
 
@@ -536,6 +545,7 @@ def test_default_module_exists_education() -> None:
 @pytest.mark.unit
 def test_default_module_exists_agriculture() -> None:
     """Agriculture domain has a general-operations default module."""
+    _skip_without_agriculture()
     dp = _REPO_ROOT / "model-packs/agriculture/modules/general-operations/domain-physics.json"
     assert dp.exists()
     data = json.loads(dp.read_text(encoding="utf-8"))
@@ -555,6 +565,7 @@ def test_pack_yaml_has_default_module_education() -> None:
 @pytest.mark.unit
 def test_pack_yaml_has_default_module_agriculture() -> None:
     """Agriculture pack.yaml declares default_module."""
+    _skip_without_agriculture()
     from lumina.core.yaml_loader import load_yaml
     pack = load_yaml(str(_REPO_ROOT / "model-packs/agriculture/pack.yaml"))
     assert pack.get("default_module") == "general-operations"
@@ -572,6 +583,7 @@ def test_get_default_module_id_education(registry: DomainRegistry) -> None:
 @pytest.mark.unit
 def test_get_default_module_id_agriculture(registry: DomainRegistry) -> None:
     """Registry can resolve default module ID for agriculture domain."""
+    _skip_without_agriculture()
     mod_id = registry.get_default_module_id("agriculture")
     assert mod_id is not None
     assert "general-operations" in mod_id
@@ -773,6 +785,7 @@ def test_education_module_map_includes_general(registry: DomainRegistry) -> None
 @pytest.mark.unit
 def test_agriculture_module_map_includes_general(registry: DomainRegistry) -> None:
     """Agriculture domain module list includes general-operations."""
+    _skip_without_agriculture()
     modules = registry.list_modules_for_domain("agriculture")
     mod_ids = [m["module_id"] for m in modules]
     assert "domain/agri/general-operations/v1" in mod_ids

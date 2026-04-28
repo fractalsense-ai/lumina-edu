@@ -1,0 +1,47 @@
+# version: 1.0.0
+# last_updated: 2026-04-19
+#
+# Module: guardian (Governance)
+# Extracted from runtime-config.yaml module_map entry:
+#   domain/educom/guardian/v1
+
+local_only: true
+
+domain_physics_path: model-packs/education-commons/modules/guardian/domain-physics.json
+domain_system_prompt_path: model-packs/education-commons/prompts/guardian-persona-v1.md
+turn_interpretation_prompt_path: model-packs/education-commons/domain-lib/reference/guardian-turn-interpretation-spec-v1.md
+
+ui_overrides:
+  subtitle: "Guardian — Student Progress"
+
+adapters:
+  state_builder:
+    module_path: model-packs/education-commons/controllers/guardian_adapters.py
+    callable: build_guardian_state
+  domain_step:
+    module_path: model-packs/education-commons/controllers/guardian_adapters.py
+    callable: guardian_domain_step
+  turn_interpreter:
+    module_path: model-packs/education-commons/controllers/guardian_adapters.py
+    callable: interpret_turn_input
+  nlp_pre_interpreter:
+    module_path: model-packs/education-commons/controllers/guardian_nlp.py
+    callable: guardian_nlp_preprocess
+
+turn_input_defaults:
+  query_type: general
+  target_component: null
+  urgency: routine
+  response_latency_sec: 5.0
+  off_task_ratio: 0.0
+
+turn_input_schema:
+  query_type:
+    type: enum
+    values: [general, child_progress, notification_settings, consent_status, out_of_scope]
+  target_component:
+    type: string
+    nullable: true
+  urgency:
+    type: enum
+    values: [routine, elevated, critical]

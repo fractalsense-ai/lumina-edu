@@ -1,0 +1,21 @@
+# Education Commons Profile Extension
+
+consent:
+  magic_circle_accepted: false
+  consent_timestamp_utc: null
+  consent_version: null
+  guardian_consent: null
+
+session_history:
+  total_sessions: 0
+  last_session_utc: null
+  total_turns: 0
+
+assigned_guardians: []
+
+guardian_state:
+  assigned_children: []
+  notification_preferences: {}
+
+assigned_safe_person_id: null
+safe_person_handshake_accepted: false

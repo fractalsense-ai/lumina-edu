@@ -1,0 +1,168 @@
+runtime:
+  global_system_prompt_path: docs/5-standards/global-system-prompt.md
+  domain_system_prompt_path: model-packs/education-commons/prompts/student-commons-persona-v1.md
+  turn_interpretation_prompt_path: model-packs/education-commons/domain-lib/reference/freeform-turn-interpretation-spec-v1.md
+
+  domain_physics_path: model-packs/education-commons/modules/student-commons/domain-physics.json
+  subject_profile_path: model-packs/education-commons/profiles/student.yaml
+
+  base_profile_path: model-packs/system/cfg/base-entity-profile.yaml
+  domain_profile_extension_path: model-packs/education-commons/cfg/domain-profile-extension.yaml
+  profile_templates:
+    default: model-packs/education-commons/profiles/student.yaml
+    student: model-packs/education-commons/profiles/student.yaml
+    parent: model-packs/education-commons/profiles/parent.yaml
+
+  slm_weight_overrides:
+    turn_interpretation: low
+
+  module_map:
+    domain/educom/student-commons/v1:
+      module_path: model-packs/education-commons/modules/student-commons
+    domain/educom/guardian/v1:
+      module_path: model-packs/education-commons/modules/guardian
+
+  role_to_default_module:
+    student: domain/educom/student-commons/v1
+    parent: domain/educom/guardian/v1
+
+  domain_roles:
+    student: { tier: user, label: "Student" }
+    parent: { tier: half_operator, label: "Guardian/Parent" }
+    observer: { tier: guest, label: "Observer" }
+
+  access_control:
+    required_role: user
+    min_tier: guest
+
+  additional_specs:
+    - model-packs/education-presentation/world-sim/magic-circle-consent-v1.md
+    - model-packs/education-presentation/world-sim/world-sim-spec-v1.md
+    - model-packs/education-commons/domain-lib/reference/freeform-turn-interpretation-spec-v1.md
+    - model-packs/education-commons/domain-lib/reference/guardian-turn-interpretation-spec-v1.md
+
+  pre_turn_checks:
+    - id: consent_boundary
+      enabled: true
+      description: "Require valid consent record before session proceeds."
+      on_failure: escalate
+
+  default_task_spec:
+    task_id: student-commons-freeform-001
+    nominal_difficulty: 0.0
+
+  turn_input_defaults:
+    intent_type: journaling
+    off_task_ratio: 0.0
+    frustration_marker_count: 0
+    correctness: n/a
+    response_latency_sec: 5.0
+    problem_solved: false
+
+  turn_input_schema:
+    journal_entity_salt:
+      type: string
+      nullable: true
+      default: null
+      description: "Device-local hex salt for entity hashing. Never persisted server-side."
+
+  action_prompt_type_map:
+    user_command: user_command
+    tool_request: tool_request
+    journal_tier1_breathing: journal_tier1_breathing
+    journal_tier2_opt_in_ask: journal_tier2_opt_in_ask
+    journal_tier3_safe_person_alert: journal_tier3_safe_person_alert
+    guardian_query: guardian_query
+    notify_read_only_boundary: guardian_read_only_boundary
+
+  deterministic_templates:
+    user_command: "Processing your request."
+    tool_request: "Checking that for you."
+    journal_tier1_breathing: "Would you like to take a short breathing moment?"
+    journal_tier2_opt_in_ask: "Would you like help connecting with a trusted adult?"
+    journal_tier3_safe_person_alert: "A trusted adult has been notified."
+    guardian_query: "Here is the guardian information available to you."
+    guardian_read_only_boundary: "Guardian access is read-only. I cannot change student records from this view."
+    default: "I am here with you."
+
+adapters:
+  state_builder:
+    module_path: model-packs/education-commons/controllers/freeform_adapters.py
+    callable: freeform_build_initial_state
+  domain_step:
+    module_path: model-packs/education-commons/controllers/freeform_adapters.py
+    callable: freeform_domain_step
+  turn_interpreter:
+    module_path: model-packs/education-commons/controllers/freeform_adapters.py
+    callable: freeform_interpret_turn_input
+  nlp_pre_interpreter:
+    module_path: model-packs/education-commons/controllers/nlp_pre_interpreter.py
+    callable: nlp_preprocess
+  pre_turn_resume:
+    module_path: model-packs/education-commons/controllers/education_pre_turn_resume.py
+    callable: education_pre_turn_resume
+  post_turn_processor:
+    module_path: model-packs/education-commons/controllers/education_post_turn.py
+    callable: education_post_turn
+  post_turn_timer:
+    module_path: model-packs/education-commons/controllers/education_post_turn.py
+    callable: education_reset_timer
+  profile_serializer:
+    module_path: model-packs/education-commons/controllers/education_profile_serializer.py
+    callable: education_serialize_profile
+  turn_0_presenter:
+    module_path: model-packs/education-commons/controllers/education_turn0.py
+    callable: education_turn0_check
+  escalation_context:
+    module_path: model-packs/education-commons/controllers/education_escalation_context.py
+    callable: education_escalation_context
+  slm_normalizer:
+    module_path: model-packs/education-commons/controllers/slm_normalizer.py
+    callable: normalize_slm_command
+  tools:
+    breathing_regulation:
+      module_path: model-packs/education-commons/controllers/journal_adapters.py
+      callable: breathing_regulation_tool
+  api_routes:
+    post_vocabulary_metric:
+      path: /api/education-commons/user/{user_id}/vocabulary-metric
+      method: POST
+      module_path: model-packs/education-commons/controllers/api_handlers.py
+      callable: post_vocabulary_metric
+      roles: []
+      request_body:
+        vocabulary_complexity_score: {type: float, ge: 0.0, le: 1.0, required: true}
+        lexical_diversity: {type: float, ge: 0.0, le: 1.0}
+        avg_word_length: {type: float, ge: 0.0}
+        embedding_spread: {type: float, ge: 0.0}
+        domain_terms_detected: {type: list}
+        buffer_turns: {type: int, ge: 0}
+        measurement_valid: {type: bool}
+    dashboard_vocabulary_growth:
+      path: /api/education-commons/dashboard/vocabulary-growth
+      method: GET
+      module_path: model-packs/education-commons/controllers/api_handlers.py
+      callable: dashboard_vocabulary_growth
+      roles: [root, admin, teacher]
+    designate_safe_person:
+      path: /api/education-commons/user/{user_id}/safe-person
+      method: POST
+      module_path: model-packs/education-commons/controllers/ops/safe_person.py
+      callable: designate_safe_person
+      roles: [root, admin, teacher]
+      request_body:
+        safe_person_id: {type: str, required: true}
+    safe_person_acknowledge:
+      path: /api/education-commons/safe-person/acknowledge
+      method: POST
+      module_path: model-packs/education-commons/controllers/ops/safe_person.py
+      callable: safe_person_acknowledge
+      roles: []
+      request_body:
+        token: {type: str, required: true}
+    revoke_safe_person:
+      path: /api/education-commons/user/{user_id}/safe-person
+      method: DELETE
+      module_path: model-packs/education-commons/controllers/ops/safe_person.py
+      callable: revoke_safe_person
+      roles: [root, admin, teacher]

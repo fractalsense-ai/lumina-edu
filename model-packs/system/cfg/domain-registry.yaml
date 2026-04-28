@@ -48,6 +48,18 @@ domains:
       - variable
       - tutoring
 
+  education-commons:
+    runtime_config_path: model-packs/education-commons/cfg/runtime-config.yaml
+    label: Education Commons
+    description: Student Commons journaling, vocabulary growth, and read-only guardian access for education model-packs.
+    module_prefix: educom
+    keywords:
+      - student commons
+      - journaling
+      - guardian
+      - safe person
+      - vocabulary growth
+
   system:
     runtime_config_path: model-packs/system/cfg/runtime-config.yaml
     label: System — Lumina Infrastructure

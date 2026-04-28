@@ -602,7 +602,7 @@ def _create_wellness_escalation(
         "trigger_type": "wellness_critical",
         "trigger_standing_order_id": "journal_tier3_protocol",
         "trigger_invariant_id": None,
-        "model_pack_id": "domain/edu/general-education/v1",
+        "model_pack_id": "domain/educom/student-commons/v1",
         "model_pack_version": "0.2.0",
         "evidence_summary": evidence_summary,
         "decision_trail_hashes": [],

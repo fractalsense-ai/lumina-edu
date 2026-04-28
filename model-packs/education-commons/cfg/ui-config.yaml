@@ -1,0 +1,73 @@
+ui_manifest:
+  title: "Project Lumina"
+  subtitle: "Education Commons"
+  domain_label: "Education Commons"
+  consent_heading: "Project Lumina"
+  consent_text: "I am not grading you for a report card. I do not keep transcripts of what you say. If we get stuck, we ask for human help."
+  consent_button_label: "I Agree to the Magic Circle"
+  placeholder_text: "Write here..."
+  theme:
+    primary: "oklch(0.45 0.08 220)"
+    accent: "oklch(0.72 0.12 60)"
+    background: "oklch(0.96 0.01 80)"
+
+  system_role_to_domain_role:
+    root: student
+    admin: student
+    super_admin: student
+    operator: student
+    half_operator: student
+    user: student
+
+  panels:
+    - id: vocabulary_growth
+      label: "Vocabulary Growth"
+      endpoint: "/api/education-commons/dashboard/vocabulary-growth"
+      roles: [root, admin, teacher]
+      type: chart
+
+  role_layouts:
+    student:
+      sidebar_panels:
+        - id: self_profile
+          label: "My Profile"
+          component: DataPanel
+          data_source: self_profile
+        - id: self_modules
+          label: "My Modules"
+          component: DataPanel
+          data_source: self_modules
+        - id: self_preferences
+          label: "Preferences"
+          component: DataPanel
+          data_source: self_preferences
+      capabilities:
+        - view_my_profile
+        - view_available_modules
+        - update_my_preferences
+    parent:
+      sidebar_panels:
+        - id: managed_user_progress
+          label: "My Child's Progress"
+          component: DataPanel
+          data_source: managed_user_progress
+          source_path: guardian_state.assigned_children
+        - id: notification_settings
+          label: "Notification Settings"
+          component: DataPanel
+          data_source: notification_settings
+          source_path: guardian_state.notification_preferences
+      capabilities:
+        - view_child_progress
+        - manage_notifications
+
+ui:
+  slash_commands:
+    - name: profile
+      operation: view_my_profile
+      description: View your profile
+      tier: user
+    - name: modules
+      operation: view_available_modules
+      description: View available modules
+      tier: user

@@ -1,0 +1,47 @@
+# Education Commons Model-Pack Manifest
+
+pack_id: education-commons
+version: "0.1.0"
+description: >-
+  Student Commons and Guardian education model-pack for safe journaling,
+  reflection, vocabulary growth, and read-only guardian progress access.
+
+layers:
+  model:
+    - modules/*/domain-physics.json
+    - domain-lib/
+  controller:
+    - controllers/freeform_adapters.py
+    - controllers/journal_adapters.py
+    - controllers/journal_nlp_pre_interpreter.py
+    - controllers/guardian_adapters.py
+    - controllers/guardian_nlp.py
+    - controllers/ops/safe_person.py
+    - modules/*/tool-adapters/*.yaml
+  domain_lib:
+    - domain-lib/reference/
+  view:
+    - prompts/student-commons-persona-v1.md
+    - prompts/guardian-persona-v1.md
+  docs:
+    - docs/
+
+modules:
+  - student-commons
+  - guardian
+
+default_module: student-commons
+
+entry_points:
+  runtime_config: cfg/runtime-config.yaml
+  ui_config: cfg/ui-config.yaml
+  runtime_adapter: controllers/freeform_adapters.py
+  nlp_pre_interpreter: controllers/nlp_pre_interpreter.py
+
+system_role_to_domain_role:
+  root: student
+  admin: student
+  super_admin: student
+  operator: student
+  half_operator: student
+  user: student

@@ -97,6 +97,24 @@ def test_domain_authority_with_foundation_module_returns_foundation(registry: Do
 
 
 @pytest.mark.unit
+def test_domain_authority_with_commons_module_returns_commons(registry: DomainRegistry) -> None:
+    """admin with a domain/educom/... module -> education-commons domain."""
+    user = {
+        "sub": "da_educom_001",
+        "role": "admin",
+        "governed_modules": ["domain/educom/student-commons/v1"],
+    }
+    assert registry.resolve_default_for_user(user) == "education-commons"
+
+
+@pytest.mark.unit
+def test_educom_prefix_resolves_to_education_commons(registry: DomainRegistry) -> None:
+    """The educom module prefix resolves to education-commons."""
+    assert registry.resolve_domain_id("educom") == "education-commons"
+    assert registry.resolve_domain_id("domain/educom/guardian/v1") == "education-commons"
+
+
+@pytest.mark.unit
 def test_domain_authority_empty_governed_modules_returns_global_default(
     registry: DomainRegistry,
 ) -> None:

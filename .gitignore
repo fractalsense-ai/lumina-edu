@@ -45,6 +45,7 @@ src/web/lib/openaikey.md
 model-packs/*/web/node_modules/
 model-packs/*/web/dist/
 model-packs/*/web/package-lock.json
+model-packs/assistant/
 
 # Per-domain vector stores (generated at runtime)
 data/retrieval-index/*/vectors.npz
