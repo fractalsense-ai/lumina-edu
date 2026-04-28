@@ -14,17 +14,6 @@ const educationPlugin: DomainPlugin = {
   register(reg) {
     reg.addSlashCommands([
       {
-        name: 'teachers',
-        operation: 'list_users',
-        description: 'Show available teachers',
-        args: [],
-        defaultParams: { domain_role: 'teacher', domain_id: 'education' },
-        allowedRoles: ['student', 'guardian', 'teaching_assistant', 'teacher', 'domain_authority'],
-        domainScope: 'education',
-        aliases: ['list_teachers'],
-        tier: 'user',
-      },
-      {
         name: 'join',
         operation: 'request_teacher_assignment',
         description: 'Request assignment to a teacher or teaching assistant',
@@ -34,22 +23,57 @@ const educationPlugin: DomainPlugin = {
         tier: 'user',
       },
       {
+        name: 'assign',
+        operation: 'assign_guardian',
+        description: 'Assign a guardian for yourself or a student',
+        args: ['guardian_id', 'student_id'],
+        allowedRoles: ['student', 'guardian'],
+        domainScope: 'education',
+        tier: 'user',
+        subCommands: {
+          guardian: {
+            operation: 'assign_guardian',
+            args: ['guardian_id', 'student_id'],
+          },
+        },
+      },
+    ])
+  },
+}
+
+// Education Admin plugin commands (mirroring model-packs/education-admin/web/plugin.ts)
+const educationAdminPlugin: DomainPlugin = {
+  id: 'education-admin-test',
+  register(reg) {
+    reg.addSlashCommands([
+      {
+        name: 'teachers',
+        operation: 'list_users',
+        description: 'Show available teachers',
+        args: [],
+        defaultParams: { domain_role: 'teacher', domain_id: 'education-admin' },
+        allowedRoles: ['teaching_assistant', 'teacher', 'domain_authority'],
+        domainScope: 'education-admin',
+        aliases: ['list_teachers'],
+        tier: 'user',
+      },
+      {
         name: 'students',
         operation: 'list_users',
         description: 'List your students',
         args: [],
-        defaultParams: { domain_role: 'student', domain_id: 'education' },
+        defaultParams: { domain_role: 'student', domain_id: 'education-admin' },
         allowedRoles: ['teaching_assistant', 'teacher', 'domain_authority'],
-        domainScope: 'education',
+        domainScope: 'education-admin',
         tier: 'user',
       },
       {
         name: 'assign',
         operation: 'assign_student',
-        description: 'Assign a student, TA, guardian, or module(s)',
+        description: 'Assign a student, TA, or learning module',
         args: ['student_id'],
-        allowedRoles: ['student', 'teaching_assistant', 'teacher', 'domain_authority'],
-        domainScope: 'education',
+        allowedRoles: ['teacher', 'domain_authority'],
+        domainScope: 'education-admin',
         tier: 'user',
         subCommands: {
           module: {
@@ -66,23 +90,33 @@ const educationPlugin: DomainPlugin = {
             args: ['ta_id', 'student_ids'],
             joinTrailingArgs: true,
           },
-          guardian: {
-            operation: 'assign_guardian',
-            args: ['guardian_id', 'student_id'],
-          },
         },
+      },
+      {
+        name: 'assignmodules',
+        operation: 'assign_modules',
+        description: 'Assign learning modules to a student, classroom, or self',
+        args: ['module_ids', 'target'],
+        allowedRoles: ['teacher', 'domain_authority'],
+        domainScope: 'education-admin',
+        tier: 'user',
       },
       {
         name: 'escalations',
         operation: 'list_escalations',
         description: 'List pending escalations',
         args: [],
+        defaultParams: { domain_id: 'education-admin' },
         allowedRoles: ['teacher', 'domain_authority'],
         aliases: ['list_escalations'],
-        domainScope: 'education',
+        domainScope: 'education-admin',
         tier: 'user',
       },
     ])
+    reg.addRoleEquivalences({
+      teacher: 'teacher',
+      teaching_assistant: 'teaching_assistant',
+    })
   },
 }
 
@@ -109,7 +143,7 @@ const systemPlugin: DomainPlugin = {
 }
 
 // Register plugins for tests that depend on domain commands & role equivalences
-beforeAll(() => { registerPlugin(educationPlugin); registerPlugin(systemPlugin) })
+beforeAll(() => { registerPlugin(educationPlugin); registerPlugin(educationAdminPlugin); registerPlugin(systemPlugin) })
 afterAll(() => { _resetForTesting() })
 
 // ── parseSlashCommand — basic dispatch ───────────────────
@@ -142,7 +176,7 @@ describe('parseSlashCommand', () => {
   it('merges defaultParams', () => {
     const result = parseSlashCommand('/teachers')
     expect(result).not.toBeNull()
-    expect(result!.params).toEqual({ domain_role: 'teacher', domain_id: 'education' })
+    expect(result!.params).toEqual({ domain_role: 'teacher', domain_id: 'education-admin' })
   })
 
   it('resolves aliases', () => {
@@ -424,7 +458,7 @@ describe('getCommandsForRole', () => {
     expect(names).toContain('ingestions')
     // system_admin should NOT see root-only commands without platformRole
     expect(names).not.toContain('update_role')
-    // Without a domainKey, education-scoped commands are excluded
+    // Without a domainKey, domain-scoped commands are excluded
     expect(names).not.toContain('teachers')
     expect(names).not.toContain('students')
     expect(names).not.toContain('join')
@@ -436,7 +470,7 @@ describe('getCommandsForRole', () => {
   it('system_operator maps to teacher via plugin role equivalences', () => {
     const cmds = getCommandsForRole('system_operator')
     const names = cmds.map((c) => c.name)
-    // Without a domainKey, education-scoped commands (including escalations) are excluded
+    // Without a domainKey, domain-scoped commands (including escalations) are excluded
     expect(names).not.toContain('escalations')
     expect(names).not.toContain('domains')
     expect(names).not.toContain('teachers')
@@ -448,16 +482,29 @@ describe('getCommandsForRole', () => {
 // ── getCommandsForRole — domain scoping ─────────────────
 
 describe('getCommandsForRole — domain scoping', () => {
-  it('domain_authority on education sees education-scoped commands', () => {
-    const cmds = getCommandsForRole('domain_authority', undefined, 'education')
+  it('domain_authority on education-admin sees admin-scoped commands', () => {
+    const cmds = getCommandsForRole('domain_authority', undefined, 'education-admin')
     const names = cmds.map((c) => c.name)
     expect(names).toContain('teachers')
     expect(names).toContain('students')
     expect(names).toContain('modules')
     expect(names).toContain('assign')
+    expect(names).toContain('assignmodules')
     expect(names).toContain('escalations')
     expect(names).toContain('switch')
-    // /join is student-only, so domain_authority still doesn't see it
+    expect(names).not.toContain('join')
+  })
+
+  it('domain_authority on education does not see admin-scoped commands', () => {
+    const cmds = getCommandsForRole('domain_authority', undefined, 'education')
+    const names = cmds.map((c) => c.name)
+    expect(names).not.toContain('teachers')
+    expect(names).not.toContain('students')
+    expect(names).toContain('modules')
+    expect(names).not.toContain('assign')
+    expect(names).not.toContain('assignmodules')
+    expect(names).not.toContain('escalations')
+    expect(names).toContain('switch')
     expect(names).not.toContain('join')
   })
 
@@ -489,10 +536,13 @@ describe('getCommandsForRole — domain scoping', () => {
   it('student on education sees education-scoped student commands', () => {
     const cmds = getCommandsForRole('student', undefined, 'education')
     const names = cmds.map((c) => c.name)
-    expect(names).toContain('teachers')
     expect(names).toContain('join')
+    expect(names).toContain('assign')
     expect(names).toContain('modules')
     expect(names).toContain('switch')
+    expect(names).not.toContain('teachers')
+    expect(names).not.toContain('students')
+    expect(names).not.toContain('escalations')
   })
 
   it('platformRole root always sees ALL commands regardless of domainKey', () => {
@@ -575,20 +625,6 @@ describe('parseSlashCommand — sub-command routing', () => {
     expect(result!.params).toEqual({ ta_id: 'ta-user', student_ids: 'stu1 stu2 stu3' })
   })
 
-  it('/assign guardian routes to assign_guardian', () => {
-    const result = parseSlashCommand('/assign guardian parent-jane student-alice')
-    expect(result).not.toBeNull()
-    expect(result!.operation).toBe('assign_guardian')
-    expect(result!.params).toEqual({ guardian_id: 'parent-jane', student_id: 'student-alice' })
-  })
-
-  it('/assign guardian with only guardian_id (student self-assign)', () => {
-    const result = parseSlashCommand('/assign guardian parent-jane')
-    expect(result).not.toBeNull()
-    expect(result!.operation).toBe('assign_guardian')
-    expect(result!.params).toEqual({ guardian_id: 'parent-jane' })
-  })
-
   it('/assign module routes to assign_module', () => {
     const result = parseSlashCommand('/assign module user-1 algebra-1')
     expect(result).not.toBeNull()
@@ -608,5 +644,24 @@ describe('parseSlashCommand — sub-command routing', () => {
     expect(result).not.toBeNull()
     expect(result!.operation).toBe('assign_student')
     expect(result!.params).toEqual({ student_id: 'unknownstudent' })
+  })
+})
+
+describe('parseSlashCommand — education guardian routing', () => {
+  it('/assign guardian routes to assign_guardian when the education plugin is active', () => {
+    _resetForTesting()
+    registerPlugin(educationPlugin)
+
+    const result = parseSlashCommand('/assign guardian parent-jane student-alice')
+    expect(result).not.toBeNull()
+    expect(result!.operation).toBe('assign_guardian')
+    expect(result!.params).toEqual({ guardian_id: 'parent-jane', student_id: 'student-alice' })
+  })
+
+  it('/assign guardian supports student self-assignment when the education plugin is active', () => {
+    const result = parseSlashCommand('/assign guardian parent-jane')
+    expect(result).not.toBeNull()
+    expect(result!.operation).toBe('assign_guardian')
+    expect(result!.params).toEqual({ guardian_id: 'parent-jane' })
   })
 })

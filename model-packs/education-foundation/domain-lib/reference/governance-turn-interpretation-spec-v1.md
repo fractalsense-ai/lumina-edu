@@ -115,7 +115,7 @@ Use: `"physics"`, `"roles"`, `"escalations"`, `"modules"`, `"progress"`,
 
 ## Related Files
 
-- `model-packs/education/controllers/governance_adapters.py` — interpreter implementation
+- `model-packs/education-admin/controllers/governance_adapters.py` - interpreter implementation
 - `model-packs/education/prompts/governance-turn-interpretation-spec-v1.md` — SLM prompt text
 - `model-packs/education/cfg/admin-operations.yaml` — operation definitions
 - `model-packs/education/cfg/runtime-config.yaml` — module routing and local_only flags

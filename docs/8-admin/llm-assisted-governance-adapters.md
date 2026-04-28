@@ -347,7 +347,7 @@ To add governance adapters to a new domain pack:
 
 | File | Role |
 |------|------|
-| `model-packs/education/controllers/governance_adapters.py` | Reference implementation: state builder, turn interpreter, physics patch extraction, novel synthesis |
+| `model-packs/education-admin/controllers/governance_adapters.py` | Reference implementation: state builder, turn interpreter, physics patch extraction, novel synthesis |
 | `model-packs/education/prompts/governance-persona-v1.md` | Education governance persona |
 | `model-packs/education/prompts/governance-turn-interpretation-spec-v1.md` | Governance SLM evidence schema |
 | `model-packs/education/cfg/runtime-config.yaml` | Module_map entries with per-module overrides |

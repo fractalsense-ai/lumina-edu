@@ -1201,19 +1201,19 @@ artifacts:
 - path: model-packs/education/modules/domain-authority/module-config.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-19
   sha256: 44b259f31f36841095d24cc51f76302c680116f1e2548a0c0801491204fb61d1
 - path: model-packs/education/modules/teacher/module-config.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-19
   sha256: 0af29e0e2b5f903c30e2b6c9a304774ddb2a3edae719c1b1e294d187b574099a
 - path: model-packs/education/modules/teaching-assistant/module-config.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-19
   sha256: 9870d8e6d8d0acb650d1c7d332bf69500bdf7817b5bb88578d3582cf0a1b0b84
 - path: model-packs/education/modules/guardian/module-config.yaml
@@ -1225,55 +1225,55 @@ artifacts:
 - path: model-packs/education/modules/teaching-assistant/tool-adapters/student-view-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: 5f1b248f7c57670a2e259387350f1909ae484f225e1d34a6cbd2382b22c4f1fb
 - path: model-packs/education/modules/teaching-assistant/tool-adapters/hint-delivery-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: ecd0cf14aef9f922f774c34bdc1db4c7a7a6003130883e43939054f5a7b0629d
 - path: model-packs/education/modules/teacher/tool-adapters/student-roster-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: d19a343631215bf027bed0a2a7044b10f43e25e1467d40d52a7e029847473616
 - path: model-packs/education/modules/teacher/tool-adapters/module-assignment-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: 679558d5a0fb421ea1f97bb14e1be89ac9fe1768eb86dca1f7bcb894e27d6b56
 - path: model-packs/education/modules/teacher/tool-adapters/escalation-handler-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: a766abd2992e805b02434ee52774817508fefb5437d8ee2f372fe8ec1fe64023
 - path: model-packs/education/modules/domain-authority/tool-adapters/role-assignment-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: 955d30cf9f4e946b85a636b0c759d706c51fdb24ac6ad89f8fb79ced4b90c02b
 - path: model-packs/education/modules/domain-authority/tool-adapters/progress-overview-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: 7eac524b85ed7e9990923ce133ae7609a5b9b64c8198bfd9ee4527950a870da1
 - path: model-packs/education/modules/domain-authority/tool-adapters/physics-staging-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: 88f99f5e020d0c63d9d80da532b0865b13c86c80b9cc9f5200d1272214e7dc45
 - path: model-packs/education/modules/domain-authority/tool-adapters/ingestion-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: ddc4e82f351f3918eecae6fb66aa9b9ef2d9a46d66a34bb61b8536eabecf9216
 - path: model-packs/education/modules/algebra-level-1/tool-adapters/substitution-checker-adapter-v1.yaml

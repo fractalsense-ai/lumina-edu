@@ -15,7 +15,8 @@
     "paths": {
       "@/*": ["./*"],
       "@domain/system/*": ["../../model-packs/system/web/*"],
-      "@domain/education/*": ["../../model-packs/education/web/*"]
+      "@domain/education/*": ["../../model-packs/education/web/*"],
+      "@domain/education-admin/*": ["../../model-packs/education-admin/web/*"]
     }
   },
   "include": ["app.tsx", "components", "lib", "src", "vite-env.d.ts"]
