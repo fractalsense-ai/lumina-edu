@@ -94,6 +94,26 @@ def test_transform_record_rewrites_nested_active_admin_ids() -> None:
     assert record["domain_id"] == "domain/edu/domain-authority/v1"
 
 
+def test_transform_record_rewrites_active_guardian_ids_to_commons() -> None:
+    cutover = _load_cutover_module()
+
+    record = {
+        "domain_id": "domain/edu/guardian/v1",
+        "module_id": "domain/edu/guardian/v1",
+        "domain_key": "education",
+        "domain_roles": {"domain/edu/guardian/v1": "parent"},
+        "modules": {"domain/edu/guardian/v1": {"assigned_children": ["student-1"]}},
+    }
+
+    transformed = cutover.transform_record(record)
+
+    assert transformed["domain_id"] == "domain/educom/guardian/v1"
+    assert transformed["module_id"] == "domain/educom/guardian/v1"
+    assert transformed["domain_key"] == "education-commons"
+    assert transformed["domain_roles"] == {"domain/educom/guardian/v1": "parent"}
+    assert set(transformed["modules"]) == {"domain/educom/guardian/v1"}
+
+
 def test_transform_record_does_not_rewrite_immutable_commitment_records() -> None:
     cutover = _load_cutover_module()
     record = {

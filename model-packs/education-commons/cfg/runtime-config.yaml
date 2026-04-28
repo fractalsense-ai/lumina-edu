@@ -94,6 +94,16 @@ runtime:
           expression: "{turn_data.tool_expression}"
           difficulty: "0.45"
 
+# ── Domain Operation Handlers ─────────────────────────────────────────
+# Guardian relationship assignment is active-owned by education-commons.
+# See docs/7-concepts/command-execution-pipeline.md
+operation_handlers:
+  assign_guardian:
+    module_path: model-packs/education-commons/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+
 adapters:
   state_builder:
     module_path: model-packs/education-commons/controllers/freeform_adapters.py

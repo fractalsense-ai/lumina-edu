@@ -18,7 +18,8 @@ runtime:
     parent: model-packs/education/profiles/parent.yaml
 
   # Module routing: maps a profile's domain_id to the correct domain-physics file.
-  # Math learning modules are owned by education-math; legacy domain/edu/* math
+  # Math learning modules are owned by education-math; Guardian and Student
+  # Commons are owned by education-commons; legacy domain/edu/*
   # IDs should be migrated through education-foundation/cfg/education-cutover-map.json.
 
   # SLM weight overrides: reclassify prompt types for the education domain.
@@ -34,17 +35,13 @@ runtime:
   module_map:
     domain/edu/general-education/v1:
       module_path: model-packs/education/modules/general-education
-    domain/edu/guardian/v1:
-      module_path: model-packs/education/modules/guardian
 
   # Role-to-default-module routing: maps domain roles to their default module.
   role_to_default_module:
     student: domain/edu/general-education/v1
-    parent: domain/edu/guardian/v1
 
   domain_roles:
     student:          { tier: user,            label: "Student" }
-    parent:           { tier: half_operator,   label: "Guardian/Parent" }
     observer:         { tier: guest,           label: "Observer" }
 
   access_control:
@@ -143,15 +140,10 @@ runtime:
     default: "{guide_npc}: The {obstacle_theme} awaits in {zone}, {protagonist}. Continue with {task_id} to reach the {macguffin}."
 
 # ── Domain Operation Handlers ─────────────────────────────────────────
-# Legacy education keeps only the transitional Guardian assignment operation.
-# Staff/governance operations are owned by education-admin.
+# Staff/governance operations are owned by education-admin; Guardian and
+# Commons operations are owned by education-commons.
 # See docs/7-concepts/command-execution-pipeline.md
-operation_handlers:
-  assign_guardian:
-    module_path: model-packs/education/controllers/education_operations.py
-    callable: handle_operation
-    hitl_exempt: true
-    min_role: user
+operation_handlers: {}
 
 adapters:
   state_builder:

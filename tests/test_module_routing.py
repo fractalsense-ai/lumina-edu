@@ -1,9 +1,9 @@
-"""Tests for active education/education-math module routing.
+"""Tests for active education/commons/math module routing.
 
-The legacy education pack keeps general/guardian modules active. Math learning
-modules are owned by the education-math pack, and staff/admin modules are owned
-by the education-admin pack. Old domain/edu/* math/admin IDs are migration
-inputs only.
+The legacy education pack keeps only general education active. Student Commons
+and Guardian are owned by education-commons, math learning modules are owned by
+education-math, and staff/admin modules are owned by education-admin. Old
+domain/edu/* IDs are migration inputs only.
 """
 from __future__ import annotations
 
@@ -15,12 +15,17 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EDU_CFG = REPO_ROOT / "model-packs" / "education" / "cfg" / "runtime-config.yaml"
+COMMONS_CFG = REPO_ROOT / "model-packs" / "education-commons" / "cfg" / "runtime-config.yaml"
 MATH_CFG = REPO_ROOT / "model-packs" / "education-math" / "cfg" / "runtime-config.yaml"
 MATH_MODULES = REPO_ROOT / "model-packs" / "education-math" / "modules"
 
 LEGACY_EDU_ACTIVE_MODULE_IDS = [
     "domain/edu/general-education/v1",
-    "domain/edu/guardian/v1",
+]
+
+COMMONS_MODULE_IDS = [
+    "domain/educom/student-commons/v1",
+    "domain/educom/guardian/v1",
 ]
 
 LEGACY_ADMIN_IDS = [
@@ -88,6 +93,16 @@ def edu_module_map(edu_runtime_cfg) -> dict:
 
 
 @pytest.fixture(scope="module")
+def commons_runtime_cfg() -> dict:
+    return _load_runtime(COMMONS_CFG)
+
+
+@pytest.fixture(scope="module")
+def commons_module_map(commons_runtime_cfg) -> dict:
+    return _merge_sidecars(commons_runtime_cfg.get("module_map", {}))
+
+
+@pytest.fixture(scope="module")
 def math_runtime_cfg() -> dict:
     return _load_runtime(MATH_CFG)
 
@@ -101,8 +116,9 @@ class TestLegacyEducationModuleMapStructure:
     def test_module_map_key_exists(self, edu_runtime_cfg):
         assert "module_map" in edu_runtime_cfg
 
-    def test_legacy_education_has_only_non_math_entries(self, edu_module_map):
+    def test_legacy_education_has_only_general_entry(self, edu_module_map):
         assert set(edu_module_map) == set(LEGACY_EDU_ACTIVE_MODULE_IDS)
+        assert "domain/edu/guardian/v1" not in edu_module_map
         for legacy_math_id in LEGACY_MATH_IDS:
             assert legacy_math_id not in edu_module_map
         for legacy_admin_id in LEGACY_ADMIN_IDS:
@@ -115,6 +131,17 @@ class TestLegacyEducationModuleMapStructure:
     @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
     def test_legacy_entries_have_domain_physics_paths(self, edu_module_map, domain_id):
         entry = edu_module_map[domain_id]
+        assert isinstance(entry.get("domain_physics_path"), str)
+        assert entry["domain_physics_path"].strip()
+
+
+class TestEducationCommonsModuleMapStructure:
+    def test_commons_module_map_has_student_commons_and_guardian(self, commons_module_map):
+        assert set(commons_module_map) == set(COMMONS_MODULE_IDS)
+
+    @pytest.mark.parametrize("domain_id", COMMONS_MODULE_IDS)
+    def test_commons_entries_have_domain_physics_paths(self, commons_module_map, domain_id):
+        entry = commons_module_map[domain_id]
         assert isinstance(entry.get("domain_physics_path"), str)
         assert entry["domain_physics_path"].strip()
 
@@ -134,6 +161,11 @@ class TestModuleMapPhysicsPaths:
     @pytest.mark.parametrize("domain_id", LEGACY_EDU_ACTIVE_MODULE_IDS)
     def test_legacy_domain_physics_path_file_exists(self, edu_module_map, domain_id):
         path_str = edu_module_map[domain_id]["domain_physics_path"]
+        assert (REPO_ROOT / path_str).exists()
+
+    @pytest.mark.parametrize("domain_id", COMMONS_MODULE_IDS)
+    def test_commons_domain_physics_path_file_exists(self, commons_module_map, domain_id):
+        path_str = commons_module_map[domain_id]["domain_physics_path"]
         assert (REPO_ROOT / path_str).exists()
 
     @pytest.mark.parametrize("domain_id", MATH_MODULE_IDS)

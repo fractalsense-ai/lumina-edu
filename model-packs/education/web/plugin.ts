@@ -3,7 +3,7 @@
  *
  * Registers:
  *  - Vocabulary complexity chat hook (passive, client-side analysis)
- *  - Education-scoped student/guardian slash commands
+ *  - Education-scoped student assignment request command
  */
 
 import type { DomainPlugin, PluginRegistration, SlashCommandDef } from '@lumina/plugins'
@@ -20,21 +20,6 @@ const EDUCATION_COMMANDS: SlashCommandDef[] = [
     allowedRoles: ['student'],
     domainScope: 'education',
     tier: 'user',
-  },
-  {
-    name: 'assign',
-    operation: 'assign_guardian',
-    description: 'Assign a guardian for yourself or a student - use /assign guardian <guardian_id> [student_id]',
-    args: ['guardian_id', 'student_id'],
-    allowedRoles: ['student', 'guardian'],
-    domainScope: 'education',
-    tier: 'user',
-    subCommands: {
-      guardian: {
-        operation: 'assign_guardian',
-        args: ['guardian_id', 'student_id'],
-      },
-    },
   },
 ]
 

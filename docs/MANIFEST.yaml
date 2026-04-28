@@ -1219,7 +1219,7 @@ artifacts:
 - path: model-packs/education/modules/guardian/module-config.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-19
   sha256: 49ab04be37ecdc51dc3321107efd4ed383c55e87fc0dfb8b2c803cbba860c5bb
 - path: model-packs/education/modules/teaching-assistant/tool-adapters/student-view-adapter-v1.yaml
@@ -1303,7 +1303,7 @@ artifacts:
 - path: model-packs/education/modules/guardian/tool-adapters/child-progress-adapter-v1.yaml
   type: config
   doc_version: 1.0.0
-  status: active
+  status: moved
   last_updated: 2026-04-04
   sha256: 5640264d48a26ec501b0b464ae2a0fe703d3f8545a6110154fca1b43784a4852
 - path: model-packs/education/profiles/domain_authority.yaml

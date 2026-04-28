@@ -13,6 +13,7 @@ export default defineConfig({
       '@': rootDir,
       '@domain/system': path.resolve(rootDir, '../../model-packs/system/web'),
       '@domain/education': path.resolve(rootDir, '../../model-packs/education/web'),
+      '@domain/education-commons': path.resolve(rootDir, '../../model-packs/education-commons/web'),
       '@domain/education-admin': path.resolve(rootDir, '../../model-packs/education-admin/web'),
     },
   },

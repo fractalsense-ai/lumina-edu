@@ -10,6 +10,7 @@ from lumina.core.runtime_loader import load_runtime_context
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ADMIN_PACK = REPO_ROOT / "model-packs" / "education-admin"
+COMMONS_PACK = REPO_ROOT / "model-packs" / "education-commons"
 ADMIN_MODULE_IDS = {
     "domain/eduadm/domain-authority/v1",
     "domain/eduadm/teacher/v1",
@@ -89,7 +90,7 @@ def test_education_admin_owns_staff_roles_not_guardian_runtime() -> None:
     assert "domain/educom/guardian/v1" not in json.dumps(runtime["domain"])
 
 
-def test_legacy_education_no_longer_actively_owns_staff_admin_modules() -> None:
+def test_legacy_education_no_longer_actively_owns_staff_admin_or_guardian_modules() -> None:
     runtime = load_runtime_context(REPO_ROOT, "model-packs/education/cfg/runtime-config.yaml")
     module_ids = set(runtime.get("module_map") or {})
     role_defaults = runtime.get("role_to_default_module") or {}
@@ -97,11 +98,26 @@ def test_legacy_education_no_longer_actively_owns_staff_admin_modules() -> None:
         (REPO_ROOT / "model-packs" / "education" / "cfg" / "runtime-config.yaml").read_text(encoding="utf-8")
     ).get("operation_handlers") or {}
 
-    assert module_ids == {"domain/edu/general-education/v1", "domain/edu/guardian/v1"}
+    assert module_ids == {"domain/edu/general-education/v1"}
     assert module_ids.isdisjoint(LEGACY_ADMIN_IDS)
     assert "domain_authority" not in role_defaults
     assert "teacher" not in role_defaults
     assert "teaching_assistant" not in role_defaults
-    assert "assign_guardian" in operations
+    assert "parent" not in role_defaults
+    assert "assign_guardian" not in operations
     assert "assign_module" not in operations
     assert "assign_student" not in operations
+
+
+def test_education_commons_owns_guardian_runtime_and_operation() -> None:
+    runtime = load_runtime_context(REPO_ROOT, "model-packs/education-commons/cfg/runtime-config.yaml")
+    module_ids = set(runtime.get("module_map") or {})
+    role_defaults = runtime.get("role_to_default_module") or {}
+    operations = yaml.safe_load(
+        (COMMONS_PACK / "cfg" / "runtime-config.yaml").read_text(encoding="utf-8")
+    ).get("operation_handlers") or {}
+
+    assert {"domain/educom/student-commons/v1", "domain/educom/guardian/v1"}.issubset(module_ids)
+    assert role_defaults["parent"] == "domain/educom/guardian/v1"
+    assert "assign_guardian" in operations
+    assert operations["assign_guardian"]["module_path"] == "model-packs/education-commons/controllers/education_operations.py"

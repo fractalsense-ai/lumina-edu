@@ -16,6 +16,7 @@
       "@/*": ["./*"],
       "@domain/system/*": ["../../model-packs/system/web/*"],
       "@domain/education/*": ["../../model-packs/education/web/*"],
+      "@domain/education-commons/*": ["../../model-packs/education-commons/web/*"],
       "@domain/education-admin/*": ["../../model-packs/education-admin/web/*"]
     }
   },

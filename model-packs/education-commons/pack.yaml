@@ -11,11 +11,13 @@ layers:
     - modules/*/domain-physics.json
     - domain-lib/
   controller:
+    - controllers/education_operations.py
     - controllers/freeform_adapters.py
     - controllers/journal_adapters.py
     - controllers/journal_nlp_pre_interpreter.py
     - controllers/guardian_adapters.py
     - controllers/guardian_nlp.py
+    - controllers/ops/guardian_assignments.py
     - controllers/ops/safe_person.py
     - modules/*/tool-adapters/*.yaml
   domain_lib:

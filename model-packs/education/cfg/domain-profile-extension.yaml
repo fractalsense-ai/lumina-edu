@@ -21,11 +21,11 @@ session_history:
 # ── Teacher-editable notes (append-only, timestamped) ───────
 teacher_notes: []
 
-# ── Guardian associations (populated by assign_guardian op) ──
+# ── Legacy Guardian associations (active operation owned by education-commons) ──
 # assigned_guardians: list of guardian user IDs linked to a student
 assigned_guardians: []
 
-# ── Guardian state (populated on guardian profiles) ──────────
+# ── Legacy Guardian state (active profiles owned by education-commons) ──────────
 # guardian_state.assigned_children: list of student IDs the guardian oversees
 guardian_state:
   assigned_children: []

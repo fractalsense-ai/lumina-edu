@@ -22,13 +22,31 @@ const educationPlugin: DomainPlugin = {
         domainScope: 'education',
         tier: 'user',
       },
+    ])
+  },
+}
+
+// Education Commons plugin commands (mirroring model-packs/education-commons/web/plugin.ts)
+const educationCommonsPlugin: DomainPlugin = {
+  id: 'education-commons-test',
+  register(reg) {
+    reg.addSlashCommands([
+      {
+        name: 'guardian',
+        operation: 'assign_guardian',
+        description: 'Assign a guardian for yourself or a student',
+        args: ['guardian_id', 'student_id'],
+        allowedRoles: ['student', 'guardian'],
+        domainScope: 'education-commons',
+        tier: 'user',
+      },
       {
         name: 'assign',
         operation: 'assign_guardian',
         description: 'Assign a guardian for yourself or a student',
         args: ['guardian_id', 'student_id'],
         allowedRoles: ['student', 'guardian'],
-        domainScope: 'education',
+        domainScope: 'education-commons',
         tier: 'user',
         subCommands: {
           guardian: {
@@ -143,7 +161,7 @@ const systemPlugin: DomainPlugin = {
 }
 
 // Register plugins for tests that depend on domain commands & role equivalences
-beforeAll(() => { registerPlugin(educationPlugin); registerPlugin(educationAdminPlugin); registerPlugin(systemPlugin) })
+beforeAll(() => { registerPlugin(educationPlugin); registerPlugin(educationCommonsPlugin); registerPlugin(educationAdminPlugin); registerPlugin(systemPlugin) })
 afterAll(() => { _resetForTesting() })
 
 // ── parseSlashCommand — basic dispatch ───────────────────
@@ -537,11 +555,24 @@ describe('getCommandsForRole — domain scoping', () => {
     const cmds = getCommandsForRole('student', undefined, 'education')
     const names = cmds.map((c) => c.name)
     expect(names).toContain('join')
+    expect(names).toContain('modules')
+    expect(names).toContain('switch')
+    expect(names).not.toContain('assign')
+    expect(names).not.toContain('guardian')
+    expect(names).not.toContain('teachers')
+    expect(names).not.toContain('students')
+    expect(names).not.toContain('escalations')
+  })
+
+  it('student on education-commons sees guardian support commands', () => {
+    const cmds = getCommandsForRole('student', undefined, 'education-commons')
+    const names = cmds.map((c) => c.name)
+    expect(names).toContain('guardian')
     expect(names).toContain('assign')
     expect(names).toContain('modules')
     expect(names).toContain('switch')
+    expect(names).not.toContain('join')
     expect(names).not.toContain('teachers')
-    expect(names).not.toContain('students')
     expect(names).not.toContain('escalations')
   })
 
@@ -647,10 +678,10 @@ describe('parseSlashCommand — sub-command routing', () => {
   })
 })
 
-describe('parseSlashCommand — education guardian routing', () => {
-  it('/assign guardian routes to assign_guardian when the education plugin is active', () => {
+describe('parseSlashCommand — education-commons guardian routing', () => {
+  it('/assign guardian routes to assign_guardian when the education-commons plugin is active', () => {
     _resetForTesting()
-    registerPlugin(educationPlugin)
+    registerPlugin(educationCommonsPlugin)
 
     const result = parseSlashCommand('/assign guardian parent-jane student-alice')
     expect(result).not.toBeNull()
@@ -658,10 +689,17 @@ describe('parseSlashCommand — education guardian routing', () => {
     expect(result!.params).toEqual({ guardian_id: 'parent-jane', student_id: 'student-alice' })
   })
 
-  it('/assign guardian supports student self-assignment when the education plugin is active', () => {
+  it('/assign guardian supports student self-assignment when the education-commons plugin is active', () => {
     const result = parseSlashCommand('/assign guardian parent-jane')
     expect(result).not.toBeNull()
     expect(result!.operation).toBe('assign_guardian')
     expect(result!.params).toEqual({ guardian_id: 'parent-jane' })
+  })
+
+  it('/guardian routes directly to assign_guardian', () => {
+    const result = parseSlashCommand('/guardian parent-jane student-alice')
+    expect(result).not.toBeNull()
+    expect(result!.operation).toBe('assign_guardian')
+    expect(result!.params).toEqual({ guardian_id: 'parent-jane', student_id: 'student-alice' })
   })
 })
