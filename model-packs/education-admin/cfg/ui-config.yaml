@@ -1,0 +1,105 @@
+ui_manifest:
+  title: "Project Lumina"
+  subtitle: "Education Admin"
+  domain_label: "Education Admin"
+  consent_heading: "Project Lumina"
+  consent_text: "Administrative access is scoped by role and audited. Student learning records remain separated from guardian and commons state."
+  consent_button_label: "Continue"
+  placeholder_text: "Enter an administrative command..."
+  theme:
+    primary: "oklch(0.42 0.07 245)"
+    accent: "oklch(0.67 0.11 145)"
+    background: "oklch(0.97 0.01 95)"
+
+  system_role_to_domain_role:
+    root: domain_authority
+    admin: domain_authority
+    super_admin: teacher
+    operator: teacher
+    half_operator: teaching_assistant
+    user: teaching_assistant
+
+  role_layouts:
+    domain_authority:
+      inherits: teacher
+      sidebar_panels:
+        - id: domain_overview
+          label: "Domain Overview"
+          component: DataPanel
+          data_source: domain_overview
+        - id: staff_directory
+          label: "Staff Directory"
+          component: DataPanel
+          data_source: staff_directory
+        - id: module_directory
+          label: "Module Management"
+          component: DataPanel
+          data_source: module_directory
+        - id: escalation_queue
+          label: "Escalation Queue"
+          component: EscalationQueue
+      capabilities:
+        - assign_modules
+        - manage_teachers
+        - view_all_progress
+        - resolve_escalations
+        - test_as_role
+    teacher:
+      sidebar_panels:
+        - id: classroom
+          label: "My Classroom"
+          component: ClassroomPanel
+        - id: managed_user_progress
+          label: "Student Progress"
+          component: DataPanel
+          data_source: managed_user_progress
+          source_path: educator_state.assigned_students
+        - id: escalation_queue
+          label: "Escalations"
+          component: EscalationQueue
+        - id: governed_modules
+          label: "Module Assignments"
+          component: DataPanel
+          data_source: governed_modules
+      capabilities:
+        - assign_modules_to_students
+        - view_student_progress
+        - resolve_escalations
+    teaching_assistant:
+      sidebar_panels:
+        - id: managed_users
+          label: "Assigned Students"
+          component: DataPanel
+          data_source: managed_users
+          source_path: assistant_state.assigned_students
+        - id: request_queue
+          label: "Hint Queue"
+          component: DataPanel
+          data_source: empty_queue
+      capabilities:
+        - view_student_progress
+        - issue_hints
+
+ui:
+  plugin_bundle: model-packs/education/web/dist/plugin.js
+  slash_commands:
+    - name: teachers
+      operation: list_users
+      description: Show available teachers
+      tier: user
+    - name: join
+      operation: request_teacher_assignment
+      description: Request assignment to a teacher
+      tier: user
+    - name: students
+      operation: list_users
+      description: List your students
+      tier: user
+    - name: assign
+      operation: assign_student
+      description: Assign a student to your roster
+      tier: user
+    - name: assignmodules
+      operation: assign_modules
+      description: Assign learning modules to a student or classroom
+      tier: user

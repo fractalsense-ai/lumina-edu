@@ -1,0 +1,30 @@
+pack_id: education-admin
+version: 0.1.0
+label: Education Admin
+description: School administration, classroom governance, teacher workflows, teaching-assistant support, roster operations, escalations, and module assignment coordination.
+module_prefix: eduadm
+default_module: domain-authority
+status: dual-active-scaffold
+
+modules:
+  - id: domain-authority
+    module_id: domain/eduadm/domain-authority/v1
+    path: modules/domain-authority
+    local_only: true
+    description: Domain-level education administration and governance.
+  - id: teacher
+    module_id: domain/eduadm/teacher/v1
+    path: modules/teacher
+    local_only: true
+    description: Teacher roster, module assignment, classroom progress, and escalation workflows.
+  - id: teaching-assistant
+    module_id: domain/eduadm/teaching-assistant/v1
+    path: modules/teaching-assistant
+    local_only: true
+    description: Teaching assistant student support and hint-delivery workflows.
+
+dependencies:
+  - education-foundation
+  - education-presentation
+  - education-commons
+  - education-math

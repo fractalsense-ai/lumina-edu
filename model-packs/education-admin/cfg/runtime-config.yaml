@@ -1,0 +1,196 @@
+runtime:
+  global_system_prompt_path: docs/5-standards/global-system-prompt.md
+  domain_system_prompt_path: model-packs/education-admin/prompts/domain-persona-v1.md
+  turn_interpretation_prompt_path: model-packs/education-admin/domain-lib/reference/turn-interpretation-spec-v1.md
+
+  domain_physics_path: model-packs/education-admin/domain-physics.json
+  domain_level_physics_path: model-packs/education-admin/domain-physics.json
+  subject_profile_path: model-packs/education-admin/profiles/domain_authority.yaml
+
+  base_profile_path: model-packs/system/cfg/base-entity-profile.yaml
+  domain_profile_extension_path: model-packs/education-admin/cfg/domain-profile-extension.yaml
+  profile_templates:
+    default: model-packs/education-admin/profiles/domain_authority.yaml
+    domain_authority: model-packs/education-admin/profiles/domain_authority.yaml
+    teacher: model-packs/education-admin/profiles/teacher.yaml
+    teaching_assistant: model-packs/education-admin/profiles/teaching_assistant.yaml
+
+  slm_weight_overrides:
+    turn_interpretation: low
+
+  module_map:
+    domain/eduadm/domain-authority/v1:
+      module_path: model-packs/education-admin/modules/domain-authority
+    domain/eduadm/teacher/v1:
+      module_path: model-packs/education-admin/modules/teacher
+    domain/eduadm/teaching-assistant/v1:
+      module_path: model-packs/education-admin/modules/teaching-assistant
+
+  role_to_default_module:
+    domain_authority: domain/eduadm/domain-authority/v1
+    teacher: domain/eduadm/teacher/v1
+    teaching_assistant: domain/eduadm/teaching-assistant/v1
+
+  domain_roles:
+    domain_authority: { tier: admin, label: "Education Admin Domain Lead" }
+    teacher: { tier: operator, label: "Teacher", may_assign: [student, parent] }
+    teaching_assistant: { tier: half_operator, label: "Teaching Assistant" }
+    observer: { tier: guest, label: "Observer" }
+
+  access_control:
+    required_role: user
+    min_tier: guest
+
+  turn_input_defaults:
+    query_type: general
+    target_component: null
+    urgency: routine
+    response_latency_sec: 5.0
+    off_task_ratio: 0.0
+
+  turn_input_schema:
+    query_type:
+      type: enum
+      values: [general, status_check, admin_command, module_management, escalation_review, physics_edit]
+      default: general
+    target_component:
+      type: string
+      nullable: true
+    urgency:
+      type: enum
+      values: [routine, elevated, critical]
+      default: routine
+    response_latency_sec:
+      type: float
+      minimum: 0.0
+      default: 5.0
+    off_task_ratio:
+      type: float
+      minimum: 0.0
+      maximum: 1.0
+      default: 0.0
+
+  action_prompt_type_map:
+    governance_command: governance_command
+    governance_status: governance_status
+    governance_progress: governance_progress
+    governance_management: governance_management
+    governance_escalation: governance_escalation
+    governance_general: governance_general
+
+  deterministic_templates:
+    governance_command: "Processing your administrative request."
+    governance_status: "Here is the current status for your education-admin domain."
+    governance_progress: "Here is the progress overview for your education-admin domain."
+    governance_management: "Processing your module management request."
+    governance_escalation: "Here are the current escalations requiring attention."
+    governance_general: "How can I assist you with education administration today?"
+    default: "How can I assist you with education administration today?"
+
+operation_handlers:
+  request_module_assignment:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: false
+    min_role: user
+  assign_student:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  remove_student:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  request_teacher_assignment:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  request_ta_assignment:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  assign_module:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  assign_modules:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  remove_module:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  switch_active_module:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+  assign_ta:
+    module_path: model-packs/education-admin/controllers/education_operations.py
+    callable: handle_operation
+    hitl_exempt: true
+    min_role: user
+
+adapters:
+  state_builder:
+    module_path: model-packs/education-admin/controllers/governance_adapters.py
+    callable: build_governance_state
+  domain_step:
+    module_path: model-packs/education-admin/controllers/governance_adapters.py
+    callable: governance_domain_step
+  turn_interpreter:
+    module_path: model-packs/education-admin/controllers/governance_adapters.py
+    callable: interpret_turn_input
+  nlp_pre_interpreter:
+    module_path: model-packs/education-admin/controllers/governance_nlp.py
+    callable: governance_nlp_preprocess
+  profile_serializer:
+    module_path: model-packs/education-admin/controllers/education_profile_serializer.py
+    callable: education_serialize_profile
+  escalation_context:
+    module_path: model-packs/education-admin/controllers/education_escalation_context.py
+    callable: education_escalation_context
+  slm_normalizer:
+    module_path: model-packs/education-admin/controllers/slm_normalizer.py
+    callable: normalize_slm_command
+  api_routes:
+    list_escalations:
+      path: /api/escalations
+      method: GET
+      module_path: model-packs/education-admin/controllers/escalation_handlers.py
+      callable: list_escalations
+      roles: []
+    get_escalation_detail:
+      path: /api/escalations/{escalation_id}
+      method: GET
+      module_path: model-packs/education-admin/controllers/escalation_handlers.py
+      callable: get_escalation_detail
+      roles: []
+    clear_stale_escalations:
+      path: /api/escalations/stale
+      method: DELETE
+      module_path: model-packs/education-admin/controllers/escalation_handlers.py
+      callable: clear_stale_escalations
+      roles: []
+    resolve_escalation:
+      path: /api/escalations/{escalation_id}/resolve
+      method: POST
+      module_path: model-packs/education-admin/controllers/escalation_handlers.py
+      callable: resolve_escalation
+      roles: []
+      request_body: {}
+      commit_guard: true
+    roster_status:
+      path: /api/dashboard/education-admin/roster-status
+      method: GET
+      module_path: model-packs/education-admin/controllers/dashboard_handlers.py
+      callable: roster_status
+      roles: []
