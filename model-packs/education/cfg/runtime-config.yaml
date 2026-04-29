@@ -180,26 +180,6 @@ adapters:
     module_path: model-packs/education/controllers/slm_normalizer.py
     callable: normalize_slm_command
   api_routes:
-    post_vocabulary_metric:
-      path: /api/user/{user_id}/vocabulary-metric
-      method: POST
-      module_path: model-packs/education/controllers/api_handlers.py
-      callable: post_vocabulary_metric
-      roles: []
-      request_body:
-        vocabulary_complexity_score: {type: float, ge: 0.0, le: 1.0, required: true}
-        lexical_diversity: {type: float, ge: 0.0, le: 1.0}
-        avg_word_length: {type: float, ge: 0.0}
-        embedding_spread: {type: float, ge: 0.0}
-        domain_terms_detected: {type: list}
-        buffer_turns: {type: int, ge: 0}
-        measurement_valid: {type: bool}
-    dashboard_vocabulary_growth:
-      path: /api/dashboard/education/vocabulary-growth
-      method: GET
-      module_path: model-packs/education/controllers/api_handlers.py
-      callable: dashboard_vocabulary_growth
-      roles: [root, admin, teacher]
     # ── Session unlock (domain-owned) ─────────────────────────
     session_unlock:
       path: /api/sessions/{session_id}/unlock
@@ -209,34 +189,3 @@ adapters:
       roles: []
       request_body:
         pin: {type: str, required: true}
-    # ── Safe Person handshake (journal wellness) ──────────────
-    designate_safe_person:
-      path: /api/user/{user_id}/safe-person
-      method: POST
-      module_path: model-packs/education/controllers/ops/safe_person.py
-      callable: designate_safe_person
-      roles: [root, admin, teacher]
-      request_body:
-        safe_person_id: {type: str, required: true}
-    safe_person_acknowledge:
-      path: /api/safe-person/acknowledge
-      method: POST
-      module_path: model-packs/education/controllers/ops/safe_person.py
-      callable: safe_person_acknowledge
-      roles: []
-      request_body:
-        token: {type: str, required: true}
-    revoke_safe_person:
-      path: /api/user/{user_id}/safe-person
-      method: DELETE
-      module_path: model-packs/education/controllers/ops/safe_person.py
-      callable: revoke_safe_person
-      roles: [root, admin, teacher]
-  tools:
-    breathing_regulation:
-      module_path: model-packs/education/controllers/journal_adapters.py
-      callable: breathing_regulation_tool
-  action_prompt_type_map:
-    journal_tier1_breathing: journal_tier1_breathing
-    journal_tier2_opt_in_ask: journal_tier2_opt_in_ask
-    journal_tier3_safe_person_alert: journal_tier3_safe_person_alert

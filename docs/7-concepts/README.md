@@ -62,7 +62,7 @@ Architectural principles, design frameworks, and system philosophy.
 | Concept | New location |
 |---------|-------------|
 | [learning-profile](learning-profile.md) | Moved to [`model-packs/education/docs/7-concepts/`](../../model-packs/education/docs/7-concepts/learning-profile.md) |
-| [student-commons](student-commons.md) | See [`model-packs/education/docs/7-concepts/`](../../model-packs/education/docs/7-concepts/student-commons.md) |
+| [student-commons](student-commons.md) | See [`model-packs/education-commons/docs/7-concepts/`](../../model-packs/education-commons/docs/7-concepts/student-commons.md) |
 | [daemon-batch-processing](../8-admin/daemon-batch-processing.md) | Moved to [Section 8 — Admin](../8-admin/) |
 | [governance-dashboard](../8-admin/governance-dashboard.md) | Moved to [Section 8 — Admin](../8-admin/) |
 | [logic-scraping](../8-admin/logic-scraping.md) | Moved to [Section 8 — Admin](../8-admin/) |

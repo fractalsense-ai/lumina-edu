@@ -34,12 +34,12 @@ def _load_api_module():
 
 @pytest.fixture
 def api_module(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setenv("LUMINA_RUNTIME_CONFIG_PATH", "model-packs/education/cfg/runtime-config.yaml")
+    monkeypatch.setenv("LUMINA_RUNTIME_CONFIG_PATH", "model-packs/education-commons/cfg/runtime-config.yaml")
     monkeypatch.delenv("LUMINA_DOMAIN_REGISTRY_PATH", raising=False)
     mod = _load_api_module()
     mod.DOMAIN_REGISTRY = DomainRegistry(
         repo_root=_REPO_ROOT,
-        single_config_path="model-packs/education/cfg/runtime-config.yaml",
+        single_config_path="model-packs/education-commons/cfg/runtime-config.yaml",
         load_runtime_context_fn=load_runtime_context,
     )
     mod.PERSISTENCE = NullPersistenceAdapter()
@@ -79,7 +79,7 @@ def _auth_header(token: str) -> dict:
 
 
 # ─────────────────────────────────────────────────────────────
-# POST /api/user/{user_id}/vocabulary-metric
+# POST /api/education-commons/user/{user_id}/vocabulary-metric
 # ─────────────────────────────────────────────────────────────
 
 
@@ -97,7 +97,7 @@ class TestPostVocabularyMetric:
         }
         payload.update(overrides)
         return client.post(
-            f"/api/user/{user_id}/vocabulary-metric",
+            f"/api/education-commons/user/{user_id}/vocabulary-metric",
             json=payload,
             headers=_auth_header(token),
         )
@@ -114,7 +114,7 @@ class TestPostVocabularyMetric:
         # Ensure the profile directory exists for the persistence stub
         profile_path = _REPO_ROOT / "data" / "profiles" / user_id
         profile_path.mkdir(parents=True, exist_ok=True)
-        edu_file = profile_path / "education.yaml"
+        edu_file = profile_path / "education-commons.yaml"
         edu_file.write_text("learning_state: {}\n", encoding="utf-8")
 
         try:
@@ -134,7 +134,7 @@ class TestPostVocabularyMetric:
 
         profile_path = _REPO_ROOT / "data" / "profiles" / user_id
         profile_path.mkdir(parents=True, exist_ok=True)
-        edu_file = profile_path / "education.yaml"
+        edu_file = profile_path / "education-commons.yaml"
         edu_file.write_text("learning_state: {}\n", encoding="utf-8")
 
         try:
@@ -163,7 +163,7 @@ class TestPostVocabularyMetric:
 
     def test_unauthenticated_rejected(self, client: TestClient) -> None:
         resp = client.post(
-            "/api/user/any/vocabulary-metric",
+            "/api/education-commons/user/any/vocabulary-metric",
             json={"vocabulary_complexity_score": 0.5},
         )
         assert resp.status_code == 401
@@ -171,7 +171,7 @@ class TestPostVocabularyMetric:
     def test_invalid_score_rejected(self, client: TestClient) -> None:
         root_token = _register_root(client)
         resp = client.post(
-            "/api/user/any/vocabulary-metric",
+            "/api/education-commons/user/any/vocabulary-metric",
             json={"vocabulary_complexity_score": 2.0},
             headers=_auth_header(root_token),
         )
@@ -179,7 +179,7 @@ class TestPostVocabularyMetric:
 
 
 # ─────────────────────────────────────────────────────────────
-# GET /api/dashboard/education/vocabulary-growth
+# GET /api/education-commons/dashboard/vocabulary-growth
 # ─────────────────────────────────────────────────────────────
 
 
@@ -188,7 +188,7 @@ class TestDashboardVocabularyGrowth:
     def test_root_can_access(self, client: TestClient) -> None:
         root_token = _register_root(client)
         resp = client.get(
-            "/api/dashboard/education/vocabulary-growth",
+            "/api/education-commons/dashboard/vocabulary-growth",
             headers=_auth_header(root_token),
         )
         assert resp.status_code == 200
@@ -204,19 +204,19 @@ class TestDashboardVocabularyGrowth:
             json={"username": "student3", "password": "test-pass-123"},
         ).json()["access_token"]
         resp = client.get(
-            "/api/dashboard/education/vocabulary-growth",
+            "/api/education-commons/dashboard/vocabulary-growth",
             headers=_auth_header(user_token),
         )
         assert resp.status_code == 403
 
     def test_unauthenticated_rejected(self, client: TestClient) -> None:
-        resp = client.get("/api/dashboard/education/vocabulary-growth")
+        resp = client.get("/api/education-commons/dashboard/vocabulary-growth")
         assert resp.status_code == 401
 
     def test_empty_profiles_dir(self, client: TestClient) -> None:
         root_token = _register_root(client)
         resp = client.get(
-            "/api/dashboard/education/vocabulary-growth",
+            "/api/education-commons/dashboard/vocabulary-growth",
             headers=_auth_header(root_token),
         )
         assert resp.status_code == 200

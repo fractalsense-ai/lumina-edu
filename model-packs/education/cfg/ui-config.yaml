@@ -44,7 +44,7 @@ ui_manifest:
       type: metric
     - id: vocabulary_growth
       label: "Vocabulary Growth"
-      endpoint: "/api/dashboard/education/vocabulary-growth"
+      endpoint: "/api/education-commons/dashboard/vocabulary-growth"
       roles: [root, admin, teacher]
       type: chart
 

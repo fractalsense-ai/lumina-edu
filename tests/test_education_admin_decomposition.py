@@ -121,3 +121,33 @@ def test_education_commons_owns_guardian_runtime_and_operation() -> None:
     assert role_defaults["parent"] == "domain/educom/guardian/v1"
     assert "assign_guardian" in operations
     assert operations["assign_guardian"]["module_path"] == "model-packs/education-commons/controllers/education_operations.py"
+
+
+def test_education_commons_owns_student_commons_vocabulary_and_safe_person_routes() -> None:
+    legacy_runtime = yaml.safe_load(
+        (REPO_ROOT / "model-packs" / "education" / "cfg" / "runtime-config.yaml").read_text(encoding="utf-8")
+    )
+    commons_runtime = yaml.safe_load(
+        (COMMONS_PACK / "cfg" / "runtime-config.yaml").read_text(encoding="utf-8")
+    )
+
+    legacy_adapters = legacy_runtime.get("adapters") or {}
+    commons_adapters = commons_runtime.get("adapters") or {}
+    legacy_routes = legacy_adapters.get("api_routes") or {}
+    legacy_tools = legacy_adapters.get("tools") or {}
+    commons_routes = commons_adapters.get("api_routes") or {}
+    commons_tools = commons_adapters.get("tools") or {}
+
+    assert "post_vocabulary_metric" not in legacy_routes
+    assert "dashboard_vocabulary_growth" not in legacy_routes
+    assert "designate_safe_person" not in legacy_routes
+    assert "safe_person_acknowledge" not in legacy_routes
+    assert "revoke_safe_person" not in legacy_routes
+    assert "breathing_regulation" not in legacy_tools
+
+    assert commons_routes["post_vocabulary_metric"]["path"] == "/api/education-commons/user/{user_id}/vocabulary-metric"
+    assert commons_routes["dashboard_vocabulary_growth"]["path"] == "/api/education-commons/dashboard/vocabulary-growth"
+    assert commons_routes["designate_safe_person"]["path"] == "/api/education-commons/user/{user_id}/safe-person"
+    assert commons_routes["safe_person_acknowledge"]["path"] == "/api/education-commons/safe-person/acknowledge"
+    assert commons_routes["revoke_safe_person"]["path"] == "/api/education-commons/user/{user_id}/safe-person"
+    assert commons_tools["breathing_regulation"]["module_path"] == "model-packs/education-commons/controllers/journal_adapters.py"

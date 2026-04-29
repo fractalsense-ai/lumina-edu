@@ -8,7 +8,7 @@
 # last_updated: 2026-04-04
 pack_id: education
 version: "0.1.0"
-description: "Legacy education coordination pack for general education compatibility during model-pack decomposition. Guardian and Student Commons are owned by education-commons; math learning modules are owned by education-math; active staff/governance modules are owned by education-admin."
+description: "Legacy education coordination pack for general education compatibility during model-pack decomposition. Active Student Commons, journaling, Guardian, Safe Person, and vocabulary-growth surfaces are owned by education-commons; math learning modules are owned by education-math; active staff/governance modules are owned by education-admin."
 
 # ── HMVC Layer Map ────────────────────────────────────────────────────
 layers:

@@ -6,6 +6,6 @@ status: Moved
 
 # Student Commons
 
-This document has moved to the education domain pack:
-[`model-packs/education/docs/7-concepts/student-commons.md`](../../model-packs/education/docs/7-concepts/student-commons.md)
+This document has moved to the education-commons domain pack:
+[`model-packs/education-commons/docs/7-concepts/student-commons.md`](../../model-packs/education-commons/docs/7-concepts/student-commons.md)
 
